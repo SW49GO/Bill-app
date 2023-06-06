@@ -14,6 +14,7 @@ import { bills } from "../fixtures/bills"
 import router from "../app/Router"
 
 jest.mock("../app/store", () => mockStore)
+// console.log('dash', mockStore.bills)
 
 describe('Given I am connected as an Admin', () => {
   describe('When I am on Dashboard page, there are bills, and there is one pending', () => {
@@ -289,7 +290,7 @@ describe("Given I am a user connected as Admin", () => {
     })
 
     test("fetches messages from an API and fails with 500 message error", async () => {
-
+   
       mockStore.bills.mockImplementationOnce(() => {
         return {
           list : () =>  {

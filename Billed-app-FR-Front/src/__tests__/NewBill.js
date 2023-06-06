@@ -130,3 +130,65 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
     })
   })
 })
+
+///////////////////////////////////////////////////////////////////////////
+//////                  INTEGRATION TEST POST                     /////////
+///////////////////////////////////////////////////////////////////////////
+
+describe("Given I am a user connected as Employee and I submit form",()=>{
+  beforeEach(() => {
+    jest.spyOn(mockStore, "bills")
+    Object.defineProperty(
+        window,
+        'localStorage',
+        { value: localStorageMock }
+    )
+    window.localStorage.setItem('user', JSON.stringify({
+      type: 'Employee',
+      email: "a@a"
+    }))
+    const root = document.createElement("div")
+    root.setAttribute("id", "root")
+    document.body.appendChild(root)
+    router()
+    window.onNavigate(ROUTES_PATH.NewBill);
+  
+  })
+  describe("When an error occurs on API",()=>{
+    test("fetches messages from an API POST and fails with 400 message error", async () => {
+      // Erreur 400 (Bad Request) 
+      document.body.innerHTML=NewBillUI();
+      const consoleErrorMock = jest.spyOn(console, 'error');
+      const newBill = new NewBill({ document, onNavigate, store:{
+          bills: jest.fn(() => ({
+          create: jest.fn(() => Promise.reject(new Error('Erreur 400')))
+        }))}, localStorage: window.localStorage });
+
+      const fileName = 'test.jpg';
+      const file = new File([''], fileName, { type: 'image/jpeg' });
+
+      newBill.document.querySelector = jest.fn().mockReturnValue({
+        files: [file]
+      });
+
+      const btnSendBill = newBill.document.getElementById('btn-send-bill');
+      expect(btnSendBill.disabled).toBe(false);
+        
+      // Appelez la méthode handleChangeFile avec un événement simulé
+      const event = {
+        preventDefault: jest.fn(),
+        target: {
+          value: 'C:\\test\\test.jpg'
+        }
+      };
+      try {
+        newBill.handleChangeFile(event);
+      } catch (error) {
+        expect(error.message).toBe('Erreur 400');
+        expect(consoleErrorMock).toHaveBeenCalledWith(error);
+        expect(btnSendBill.disabled).toBe(true);
+      }
+      consoleErrorMock.mockRestore();
+      });
+    })
+  })
