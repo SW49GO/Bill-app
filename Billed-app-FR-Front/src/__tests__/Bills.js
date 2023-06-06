@@ -5,6 +5,7 @@
 import {screen, waitFor, fireEvent} from "@testing-library/dom"
 import userEvent from '@testing-library/user-event'
 import BillsUI from "../views/BillsUI.js"
+import Bills from "../containers/Bills.js";
 import { ROUTES_PATH, ROUTES} from "../constants/routes.js";
 import Logout from "../containers/Logout";
 import {localStorageMock} from "../__mocks__/localStorage.js";
@@ -259,3 +260,40 @@ describe("Given I am a user connected as Employee",()=>{
   })
 })
 
+
+  ///////////////////////////////////////////////////////////////////////////////
+  ////                               COVERAGE                                ////
+  ///////////////////////////////////////////////////////////////////////////////
+
+  //   // COVERAGE : getBills -> catch(e){  console.log(e,'for',doc)...
+  describe("Given  I am a user connected as Employee",()=>{
+    describe("When I'm on the bills page with corrupted data", () => {
+      test("Then It should render a log error", async () => {
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname })
+        }
+        const allBills = new Bills({
+          document,
+          onNavigate,
+          store: mockStore,
+          localStorage: window.localStorage,
+        });
+    
+        mockStore.bills().list = jest.fn().mockResolvedValueOnce([
+          { doc: { date: '2023-05-01', status: 'accepted' } },
+          { doc: { date: '2023-06-01', status: 'accepted' } },
+          { doc: { date: '2023-05-02', status: 'accepted' } },
+          { doc: { date: 'incorrect date', status: 'rejected' } },
+          { doc: { date: '2023-05-04', status: undefined } }, 
+        ]);
+
+        const consoleSpy = jest.spyOn(console, 'log');
+        const result = await allBills.getBills();
+  
+        await expect(mockStore.bills().list).toHaveBeenCalled();
+        expect(result.length).toBe(5); 
+        expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error), expect.stringContaining("for"), expect.objectContaining({ doc: { date: "incorrect date", status: "rejected" } }));
+        consoleSpy.mockRestore();
+      });
+    });
+  });  
