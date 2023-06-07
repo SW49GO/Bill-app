@@ -12,9 +12,13 @@ import {localStorageMock} from "../__mocks__/localStorage.js";
 import mockStore from "../__mocks__/store"
 import { bills } from "../fixtures/bills"
 import router from "../app/Router"
+import $ from 'jquery';
+import LoginUI from "../views/LoginUI";
+import Login from "../containers/Login.js";
+
 
 jest.mock("../app/store", () => mockStore)
-console.log('bill',mockStore.bills)
+
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
@@ -78,7 +82,6 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
       window.onNavigate(ROUTES_PATH.Bills)
 
       const PREVIOUS_LOCATION ='/';
-      
             window.onpopstate = (e) => {
               const user = JSON.parse(localStorage.getItem('user'))
               if (window.location.pathname === "/" && !user) {
@@ -118,28 +121,22 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
       expect(screen.getByText("Justificatif")).toBeTruthy();
     })
   })
-  // describe("When I click on disconnect Button",()=>{
-  //   test("Then I am redirected to the 'Login' page",()=>{
-  //     const onNavigate = (pathname) => {
-  //       document.body.innerHTML = ROUTES({ pathname })
-  //     }
-  //     Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-  //     window.localStorage.setItem('user', JSON.stringify({
-  //       type: 'Employee'
-  //     }))
-  //     document.body.innerHTML = BillsUI({ data:bills })
-  //     const userData = window.localStorage.getItem('user');
-  //     expect(userData).toBeDefined();
-  //     console.log(JSON.parse(userData));
-  //     const logout = new Logout({ document, onNavigate, localStorage })
-  //     const disconnect = document.getElementById('layout-disconnect')
-  //     const handleClick = jest.fn(logout.handleClick)
-  //     disconnect.addEventListener('click', handleClick)
-  //     userEvent.click(disconnect)
-  //     expect(handleClick).toHaveBeenCalled()
-  //     expect(screen.getByText('Employé')).toBeTruthy()
-  //   })
-  // })
+  describe("When I click on disconnect Button",()=>{
+    test("Then I am redirected to the 'Login' page",()=>{
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })
+      }
+      document.body.innerHTML = BillsUI({data:bills})
+      const getItemSpy = jest.spyOn(global.window.localStorage, 'getItem');
+      getItemSpy.mockReturnValue(JSON.stringify({ type: 'Employee' }));
+      
+      new Logout({ document, onNavigate, localStorage });
+
+      const disconnect =  $('#layout-disconnect');
+      disconnect.trigger('click')
+      expect(screen.getByText("Employé")).toBeTruthy() 
+    })
+  })
 })
 
 describe("Given I am connected as an employee, on Bills Page, and I click on EyeIcon",()=>{
@@ -215,7 +212,7 @@ describe("Given I am a user connected as Employee",()=>{
         }})
       window.onNavigate(ROUTES_PATH.Bills)
       await new Promise(process.nextTick);
-      const message = await screen.getByText(/Erreur 400/)
+      const message = screen.getByText(/Erreur 400/)
       expect(message).toBeTruthy()
     })
     test("fetches bills from an API and fails with 401 message error", async () => {
@@ -228,7 +225,7 @@ describe("Given I am a user connected as Employee",()=>{
         }})
       window.onNavigate(ROUTES_PATH.Bills)
       await new Promise(process.nextTick);
-      const message = await screen.getByText(/Erreur 401/)
+      const message = screen.getByText(/Erreur 401/)
       expect(message).toBeTruthy()
     })
     test("fetches bills from an API and fails with 404 message error", async () => {
@@ -241,7 +238,7 @@ describe("Given I am a user connected as Employee",()=>{
         }})
       window.onNavigate(ROUTES_PATH.Bills)
       await new Promise(process.nextTick);
-      const message = await screen.getByText(/Erreur 404/)
+      const message = screen.getByText(/Erreur 404/)
       expect(message).toBeTruthy()
     })
     test("fetches bills from an API and fails with 500 message error", async () => {
@@ -254,7 +251,7 @@ describe("Given I am a user connected as Employee",()=>{
         }})
       window.onNavigate(ROUTES_PATH.Bills)
       await new Promise(process.nextTick);
-      const message = await screen.getByText(/Erreur 500/)
+      const message = screen.getByText(/Erreur 500/)
       expect(message).toBeTruthy()
     })
   })
