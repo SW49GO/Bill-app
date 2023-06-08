@@ -97,8 +97,8 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
     })
   })
 
-  describe("When I click on the iconEye of one of the expense reports",()=>{
-    test("Then A modal opens displaying the Proof of the expense report",()=>{
+  describe("When I click on the iconEye of one of the bills",()=>{
+    test("Then A modal opens displaying the Proof of the bill",()=>{
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee'
@@ -119,6 +119,12 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
         expect($.fn.modal).toHaveBeenCalled();
       }
       expect(screen.getByText("Justificatif")).toBeTruthy();
+      
+      //[Big Hunt] -Bills - Modal must show image
+      const imgElement = document.querySelector('img');
+      expect(imgElement).toBeTruthy()
+      expect(imgElement.src).not.toBe(null)
+      expect(imgElement.src.match(/\.(jpg|jpeg|png)/)).toBeTruthy();
     })
   })
   describe("When I click on disconnect Button",()=>{
@@ -175,12 +181,13 @@ describe("Given I am a user connected as Employee",()=>{
   
       router();
       window.onNavigate(ROUTES_PATH.Bills);
-    
+
       await waitFor(() => screen.getAllByText("Mes notes de frais"));
       expect(screen.getByText("Nouvelle note de frais")).toBeTruthy();
       expect(screen.getAllByTestId("icon-eye")).toBeTruthy();
       expect(screen.getByText("Services en ligne")).toBeTruthy();
       expect(screen.getByText("100 €")).toBeTruthy();
+      expect(screen.getByText("3 Mar. 03")).toBeTruthy();
       expect(screen.getAllByTestId("tbody")).toBeTruthy();
       expect(screen.getByText("Billed")).toBeTruthy();
     })

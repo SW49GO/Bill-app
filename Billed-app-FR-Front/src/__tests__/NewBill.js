@@ -141,11 +141,11 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
 })
  
 
-///////////////////////////////////////////////////////////////////////////
-//////                  INTEGRATION TEST POST                     /////////
-///////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////
+// //////                  INTEGRATION TEST POST                     /////////
+// ///////////////////////////////////////////////////////////////////////////
 
-describe("Given I am a user connected as Employee",()=>{
+ describe("Given I am a user connected as Employee",()=>{
   describe("When I submit Form",()=>{
     test("Then the Bill is create with success, POST(201)", ()=>{
       document.body.innerHTML = NewBillUI()
@@ -168,7 +168,6 @@ describe("Given I am a user connected as Employee",()=>{
         screen.getByTestId("commentary").value = myBill.commentary;
         
         const handleChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
-        handleChangeFile.mockResolvedValue();
         const file = screen.getByTestId("file")
         file.addEventListener("change",handleChangeFile)
         fireEvent.change(file, {target: {files: [myBill.fileUrl]}})
@@ -178,7 +177,6 @@ describe("Given I am a user connected as Employee",()=>{
 
         const handleSubmit = jest.fn((e) => newBill.handleSubmit(e))
         const updateBillSpy = jest.spyOn(newBill, 'updateBill')
-        updateBillSpy.mockResolvedValue()
 
         const form = screen.getByTestId("form-new-bill")
         form.addEventListener("submit", handleSubmit)
@@ -198,8 +196,74 @@ describe("Given I am a user connected as Employee",()=>{
       }
     })
   })
- 
 
+  describe("When an error occurs on API",()=>{
+    test("fetches messages from an API POST and fails with 500 message error",() => {
+      //Erreur 500 (Internal Server Error)
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })}
+
+      document.body.innerHTML=NewBillUI();
+      console.log( document.body.innerHTML)
+
+      const newBill = new NewBill({ document, onNavigate, store:{
+        bills: jest.fn(() => ({
+        create: jest.fn(() => Promise.reject(new Error('Erreur 500')))
+      }))}, localStorage:window.localStorage });
+
+      const consoleErrorMock = jest.spyOn(console, 'error');
+
+      const event = {
+        preventDefault: jest.fn(),
+        target: {
+          value: 'C:\\test\\test.jpg'
+        }
+      }
+      try {
+        newBill.handleChangeFile(event);
+      } catch (error) {
+        expect(error.message).toBe('Erreur 500');
+        expect(consoleErrorMock).toHaveBeenCalledWith(error);
+      }
+      consoleErrorMock.mockRestore();
+    })
+
+    test("fetches messages from an API POST and fails with 400 message error",() => {
+      // Erreur 400 (Bad Request) 
+      document.body.innerHTML=NewBillUI();
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })}
+      const consoleErrorMock = jest.spyOn(console, 'error');
+      const newBill = new NewBill({ document, onNavigate, store:{
+          bills: jest.fn(() => ({
+          create: jest.fn(() => Promise.reject(new Error('Erreur 400')))
+        }))}, localStorage: window.localStorage });
+
+      const fileName = 'test.jpg';
+      const file = new File([''], fileName, { type: 'image/jpeg' });
+      newBill.document.querySelector = jest.fn().mockReturnValue({
+        files: [file]
+      });
+
+      const btnSendBill = newBill.document.getElementById('btn-send-bill');
+      expect(btnSendBill.disabled).toBe(false);
+        
+      const event = {
+        preventDefault: jest.fn(),
+        target: {
+          value: 'C:\\test\\test.jpg'
+        }
+      };
+      try {
+        newBill.handleChangeFile(event);
+      } catch (error) {
+        expect(error.message).toBe('Erreur 400');
+        expect(consoleErrorMock).toHaveBeenCalledWith(error);
+        expect(btnSendBill.disabled).toBe(true);
+      }
+        consoleErrorMock.mockRestore();
+    });
+  })
 
 })
 

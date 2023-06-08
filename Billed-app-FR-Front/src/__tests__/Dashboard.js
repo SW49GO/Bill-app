@@ -6,7 +6,7 @@ import {fireEvent, screen, waitFor} from "@testing-library/dom"
 import userEvent from '@testing-library/user-event'
 import DashboardFormUI from "../views/DashboardFormUI.js"
 import DashboardUI from "../views/DashboardUI.js"
-import Dashboard, { filteredBills, cards } from "../containers/Dashboard.js"
+import Dashboard, { filteredBills, cards, card } from "../containers/Dashboard.js"
 import { ROUTES, ROUTES_PATH } from "../constants/routes"
 import { localStorageMock } from "../__mocks__/localStorage.js"
 import mockStore from "../__mocks__/store"
@@ -117,6 +117,10 @@ describe('Given I am connected as an Admin', () => {
       const iconEdit = screen.getByTestId('open-bill47qAXb6fIm2zOKkLzMro')
       userEvent.click(iconEdit)
       expect(screen.getByTestId(`dashboard-form`)).toBeTruthy()
+
+      //[Big Hunt]-Bills ->in the dashboard, the form corresponding to the ticket must display the name of the file
+      const fileName = document.getElementById("file-name-admin")
+      expect(fileName.textContent).toBe("preview-facture-free-201801-pdf-1.jpg")
     })
   })
 
@@ -308,3 +312,75 @@ describe("Given I am a user connected as Admin", () => {
   })
 })
 
+
+  ///////////////////////////////////////////////////////////////////////////////
+  ////                               COVERAGE                                ////
+  ///////////////////////////////////////////////////////////////////////////////
+
+  describe("Given I am connect as Admin",()=>{
+    describe("When a card is shown",()=>{
+      test("Then I can see Firstname and Lastname",()=>{
+        const bill={
+        "id": "x2x2x2x2x2",
+        "vat": "80",
+        "fileUrl": "https://test.storage",
+        "status": "pending",
+        "type": "Hôtel et logement",
+        "commentary": "",
+        "name": "Soirée",
+        "fileName": "facture-free-201801-pdf-1.jpg",
+        "date": "2004-04-04",
+        "amount": 400,
+        "commentAdmin": "ok",
+        "email": "bat.man@test.fr",
+        "pct": 20
+        }
+
+        const result = card(bill);
+
+        expect(result).toContain(`id='open-bill${bill.id}'`);
+        expect(result).toContain(`data-testid='open-bill${bill.id}'`);
+        expect(result).toContain(`class='bill-card'`);
+        expect(result).toContain(`class='bill-card-name'`);
+        expect(result).toContain(`class='bill-card-grey'`);
+        expect(result).toContain(`class='name-price-container'`);
+        expect(result).toContain(`class='date-type-container'`);
+
+        const email = bill.email.split('@')[0].split('.');
+        const expectedFirstName = email.length > 0 ? email[0] : '';
+        const expectedLastName = email.length > 1 ? email[1] : email[0];
+        expect(result).toContain(`${expectedFirstName} ${expectedLastName}`);
+      })
+    })
+    describe("When I am on Dashboard page and I click on arrow",()=>{
+      test("Then the card list is open",()=>{
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname })
+        }
+        Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+        window.localStorage.setItem('user', JSON.stringify({
+          type: 'Admin'
+        }))
+
+        const dashboard = new Dashboard({
+          document, onNavigate, store: null, bills:bills, localStorage: window.localStorage
+        })
+        document.body.innerHTML = DashboardUI({ data: { bills } })
+
+        const handleShowTickets = dashboard.handleShowTickets;
+
+        const index = 1;
+        handleShowTickets.call( null, bills,{ counter: 1, index });
+
+        console.log(document.body.innerHTML)
+        const arrowIcon = document.querySelector(`#arrow-icon${index}`);
+        console.log('arrowIcon:', arrowIcon)
+        const statusBillsContainer = document.querySelector(`#status-bills-container${index}`);
+        console.log('statusBillsContainer:', statusBillsContainer)
+
+        // expect(arrowIcon.style.transform).toBe('rotate(90deg)');
+        // expect(statusBillsContainer.innerHTML).toBe('');
+  
+      })
+    })
+  })
