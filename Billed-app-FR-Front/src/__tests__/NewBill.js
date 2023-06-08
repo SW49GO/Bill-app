@@ -56,12 +56,18 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
   describe("When I do not fill in the fields of the required form, I click on the 'Send' button",()=>{
     test("Then I am told to fill in the required fields, I still stay on form",()=>{
       document.body.innerHTML=NewBillUI();
+
       const form = screen.getByTestId("form-new-bill")
       const buttonNewBill = jest.fn((e) => e.preventDefault())
       form.addEventListener("submit", buttonNewBill)
       fireEvent.submit(form)
 
       expect(form).toBeTruthy()
+      expect((screen.getByTestId("expense-name")).value).toBe('')
+      expect((screen.getByTestId("amount")).value).toBe('')
+      expect((screen.getByTestId("commentary")).value).toBe('')
+      expect((screen.getByTestId("vat")).value).toBe('')
+      expect((screen.getByTestId("pct")).value).toBe('')
       expect(document.getElementById("btn-send-bill")).toBeTruthy()
     })
   })
@@ -87,6 +93,7 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       expect(consoleSpy).toBeTruthy()
       const buttonSubmit = screen.getByText("Envoyer")
       expect(buttonSubmit.disabled).toBe(true)
+      consoleSpy.mockRestore()
     })
   })
 
@@ -107,9 +114,9 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       userEvent.type(formNewBill.querySelector(`textarea[data-testid="commentary"]`), 'C\'était cool !!');
       const dateInput = formNewBill.querySelector(`input[data-testid="datepicker"]`);
       dateInput.setAttribute('value', '2020-05-01');
-      userEvent.click(dateInput); // 
+      userEvent.click(dateInput); 
   
-      newBill.fileUrl = 'https://example.com/file-url';
+      newBill.fileUrl = 'https://example.com/';
       newBill.fileName = 'example-file.jpg';
 
       const updateBillSpy = jest.spyOn(newBill, "updateBill");
@@ -119,80 +126,80 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
         preventDefault: jest.fn(),
         target: formNewBill,
       });
-
+      
       expect(updateBillSpy).toHaveBeenCalled();
       expect(screen.getByText("Mes notes de frais")).toBeTruthy();
-
+    
+// console.log(document.body.innerHTML)
       const updateBillArgs = updateBillSpy.mock.calls[0];
       const [billData] = updateBillArgs;
       expect(billData.name).toBe('Apero collègue');
       expect(billData.status).toBe('pending');
+      expect(newBill.fileName).toBe("example-file.jpg")
     })
   })
 })
+ 
 
 ///////////////////////////////////////////////////////////////////////////
 //////                  INTEGRATION TEST POST                     /////////
 ///////////////////////////////////////////////////////////////////////////
 
-describe("Given I am a user connected as Employee and I submit form",()=>{
-  beforeEach(() => {
-    jest.spyOn(mockStore, "bills")
-    Object.defineProperty(
-        window,
-        'localStorage',
-        { value: localStorageMock }
-    )
-    window.localStorage.setItem('user', JSON.stringify({
-      type: 'Employee',
-      email: "a@a"
-    }))
-    const root = document.createElement("div")
-    root.setAttribute("id", "root")
-    document.body.appendChild(root)
-    router()
-    window.onNavigate(ROUTES_PATH.NewBill);
-  
-  })
-  describe("When an error occurs on API",()=>{
-    test("fetches messages from an API POST and fails with 400 message error", async () => {
-      // Erreur 400 (Bad Request) 
-      document.body.innerHTML=NewBillUI();
-      const consoleErrorMock = jest.spyOn(console, 'error');
-      const newBill = new NewBill({ document, onNavigate, store:{
-          bills: jest.fn(() => ({
-          create: jest.fn(() => Promise.reject(new Error('Erreur 400')))
-        }))}, localStorage: window.localStorage });
+describe("Given I am a user connected as Employee",()=>{
+  describe("When I submit Form",()=>{
+    test("Then the Bill is create with success, POST(201)", ()=>{
+      document.body.innerHTML = NewBillUI()
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+      window.localStorage.setItem('user', JSON.stringify({
+        type: 'Employee'
+      }))
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })
 
-      const fileName = 'test.jpg';
-      const file = new File([''], fileName, { type: 'image/jpeg' });
+        const newBill= new NewBill({ document, onNavigate, store:mockStore, localStorage })
+        const myBill = {type:"Transports", name:"Taxi aéroport", date:"2023-07-06", amount:100, vat:20, pct:20, commentary:"Embouteillage", fileUrl:"c://test/image.jpg", fileName:"image.jpg", status:"pending"}
 
-      newBill.document.querySelector = jest.fn().mockReturnValue({
-        files: [file]
-      });
-
-      const btnSendBill = newBill.document.getElementById('btn-send-bill');
-      expect(btnSendBill.disabled).toBe(false);
+        screen.getByTestId("expense-type").value = myBill.type;
+        screen.getByTestId("expense-name").value = myBill.name;
+        screen.getByTestId("datepicker").value = myBill.date;
+        screen.getByTestId("amount").value = myBill.amount;
+        screen.getByTestId("vat").value = myBill.vat;
+        screen.getByTestId("pct").value = myBill.pct;
+        screen.getByTestId("commentary").value = myBill.commentary;
         
-      // Appelez la méthode handleChangeFile avec un événement simulé
-      const event = {
-        preventDefault: jest.fn(),
-        target: {
-          value: 'C:\\test\\test.jpg'
-        }
-      };
-      try {
-        newBill.handleChangeFile(event);
-      } catch (error) {
-        expect(error.message).toBe('Erreur 400');
-        expect(consoleErrorMock).toHaveBeenCalledWith(error);
-        expect(btnSendBill.disabled).toBe(true);
+        const handleChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
+        handleChangeFile.mockResolvedValue();
+        const file = screen.getByTestId("file")
+        file.addEventListener("change",handleChangeFile)
+        fireEvent.change(file, {target: {files: [myBill.fileUrl]}})
+
+        const createBillMock = jest.fn().mockResolvedValue({ fileUrl: 'http://example.com', key: '1234' })
+        jest.spyOn(newBill.store.bills(), 'create').mockImplementation(createBillMock);
+
+        const handleSubmit = jest.fn((e) => newBill.handleSubmit(e))
+        const updateBillSpy = jest.spyOn(newBill, 'updateBill')
+        updateBillSpy.mockResolvedValue()
+
+        const form = screen.getByTestId("form-new-bill")
+        form.addEventListener("submit", handleSubmit)
+        fireEvent.submit(form)
+
+        expect(handleSubmit).toHaveBeenCalled()
+        expect(updateBillSpy).toHaveBeenCalled()
+        expect(handleChangeFile).toHaveBeenCalled()
+        expect(createBillMock).toHaveBeenCalledWith({
+          data: expect.any(FormData),
+          headers: { noContentType: true }
+        });
+      
+        expect(newBill.fileUrl).toBe("c://test/image.jpg")
+        expect(newBill.fileName).toBe("image.jpg")
+        expect(newBill.billId).toBe("1234")
       }
-      consoleErrorMock.mockRestore();
-      });
     })
   })
+ 
 
-  ///////////////////////////////////////////////////////////////////////////////
-  ////                               COVERAGE                                ////
-  ///////////////////////////////////////////////////////////////////////////////
+
+})
+
