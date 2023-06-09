@@ -13,9 +13,6 @@ import mockStore from "../__mocks__/store"
 import { bills } from "../fixtures/bills"
 import router from "../app/Router"
 import $ from 'jquery';
-import LoginUI from "../views/LoginUI";
-import Login from "../containers/Login.js";
-
 
 jest.mock("../app/store", () => mockStore)
 
@@ -119,7 +116,7 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
         expect($.fn.modal).toHaveBeenCalled();
       }
       expect(screen.getByText("Justificatif")).toBeTruthy();
-      
+
       //[Big Hunt] -Bills - Modal must show image
       const imgElement = document.querySelector('img');
       expect(imgElement).toBeTruthy()

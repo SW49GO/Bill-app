@@ -10,6 +10,7 @@ import {localStorageMock} from "../__mocks__/localStorage.js";
 import mockStore from "../__mocks__/store.js"
 import { ROUTES, ROUTES_PATH } from '../constants/routes.js'
 import router from "../app/Router.js";
+
 jest.mock("../app/store", () => mockStore)
 
 
@@ -199,7 +200,7 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
 
   describe("When an error occurs on API",()=>{
     test("fetches messages from an API POST and fails with 500 message error",() => {
-      //Erreur 500 (Internal Server Error)
+      //Erreur  400 (Bad Request) 
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })}
 
@@ -208,7 +209,7 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
 
       const newBill = new NewBill({ document, onNavigate, store:{
         bills: jest.fn(() => ({
-        create: jest.fn(() => Promise.reject(new Error('Erreur 500')))
+        create: jest.fn(() => Promise.reject(new Error('Erreur 404')))
       }))}, localStorage:window.localStorage });
 
       const consoleErrorMock = jest.spyOn(console, 'error');
@@ -216,27 +217,27 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       const event = {
         preventDefault: jest.fn(),
         target: {
-          value: 'C:\\test\\test.jpg'
+          value: null
         }
       }
       try {
         newBill.handleChangeFile(event);
       } catch (error) {
-        expect(error.message).toBe('Erreur 500');
+        expect(error.message).toBe('Erreur 404');
         expect(consoleErrorMock).toHaveBeenCalledWith(error);
       }
       consoleErrorMock.mockRestore();
     })
 
-    test("fetches messages from an API POST and fails with 400 message error",() => {
-      // Erreur 400 (Bad Request) 
+    test("fetches messages from an API POST and fails with 500 message error",() => {
+      // Erreur 500 (Internal Server Error)
       document.body.innerHTML=NewBillUI();
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })}
       const consoleErrorMock = jest.spyOn(console, 'error');
       const newBill = new NewBill({ document, onNavigate, store:{
           bills: jest.fn(() => ({
-          create: jest.fn(() => Promise.reject(new Error('Erreur 400')))
+          create: jest.fn(() => Promise.reject(new Error('Erreur 500')))
         }))}, localStorage: window.localStorage });
 
       const fileName = 'test.jpg';
@@ -257,7 +258,7 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       try {
         newBill.handleChangeFile(event);
       } catch (error) {
-        expect(error.message).toBe('Erreur 400');
+        expect(error.message).toBe('Erreur 500');
         expect(consoleErrorMock).toHaveBeenCalledWith(error);
         expect(btnSendBill.disabled).toBe(true);
       }
