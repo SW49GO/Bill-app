@@ -336,20 +336,20 @@ describe("Given I am connect as Admin",()=>{
       "pct": 20
       }
 
-      const result = card(bill);
+      const myCard = card(bill)
 
-      expect(result).toContain(`id='open-bill${bill.id}'`);
-      expect(result).toContain(`data-testid='open-bill${bill.id}'`);
-      expect(result).toContain(`class='bill-card'`);
-      expect(result).toContain(`class='bill-card-name'`);
-      expect(result).toContain(`class='bill-card-grey'`);
-      expect(result).toContain(`class='name-price-container'`);
-      expect(result).toContain(`class='date-type-container'`);
+      expect(myCard).toContain(`id='open-bill${bill.id}'`)
+      expect(myCard).toContain(`data-testid='open-bill${bill.id}'`)
+      expect(myCard).toContain(`class='bill-card'`)
+      expect(myCard).toContain(`class='bill-card-name'`)
+      expect(myCard).toContain(`class='bill-card-grey'`)
+      expect(myCard).toContain(`class='name-price-container'`)
+      expect(myCard).toContain(`class='date-type-container'`)
 
-      const email = bill.email.split('@')[0].split('.');
-      const expectedFirstName = email.length > 0 ? email[0] : '';
-      const expectedLastName = email.length > 1 ? email[1] : email[0];
-      expect(result).toContain(`${expectedFirstName} ${expectedLastName}`);
+      const email = bill.email.split('@')[0].split('.')
+      const expectedFirstName = email.length > 0 ? email[0] : ''
+      const expectedLastName = email.length > 1 ? email[1] : email[0]
+      expect(myCard).toContain(`${expectedFirstName} ${expectedLastName}`)
     })
   })
   describe("When I am on Dashboard page and I click on arrow when cards list close",()=>{
@@ -367,13 +367,13 @@ describe("Given I am connect as Admin",()=>{
       })
       document.body.innerHTML = DashboardUI({ data: bills  })
 
-      const handleShowTickets = dashboard.handleShowTickets.bind({ counter: 1, index: 1 });
+      const handleShowTickets = dashboard.handleShowTickets.bind({ counter: 1, index: 1 })
       const arrowIcon = screen.getByTestId(`arrow-icon1`);
       expect(arrowIcon).toBeTruthy()
-      const statusBillsContainer = document.getElementById(`status-bills-container1`);
+      const statusBillsContainer = document.getElementById(`status-bills-container1`)
       expect(statusBillsContainer).toBeTruthy()
       
-      handleShowTickets(null, bills, 1);
+      handleShowTickets(null, bills, 1)
       expect(statusBillsContainer.textContent).toBe('')
     })
   })
@@ -385,13 +385,13 @@ describe("Given I am connect as Admin",()=>{
       document.body.innerHTML= DashboardUI({data:bills})
 
       const clickSpy = jest.spyOn($.fn, 'trigger');
-      new Dashboard({ document, onNavigate, store: null, bills: bills, localStorage});
+      new Dashboard({ document, onNavigate, store: null, bills: bills, localStorage})
       $('#arrow-icon1').trigger('click');
-      expect(clickSpy).toHaveBeenCalledWith('click');
+      expect(clickSpy).toHaveBeenCalledWith('click')
       $('#arrow-icon2').trigger('click');
-      expect(clickSpy).toHaveBeenCalledWith('click');
+      expect(clickSpy).toHaveBeenCalledWith('click')
       $('#arrow-icon3').trigger('click');
-      expect(clickSpy).toHaveBeenCalledWith('click');
+      expect(clickSpy).toHaveBeenCalledWith('click')
       
     })
   })

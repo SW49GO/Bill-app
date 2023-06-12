@@ -2,10 +2,10 @@
  * @jest-environment jsdom
  */
 
-import { screen,fireEvent } from "@testing-library/dom"
+import { screen,fireEvent, waitFor } from "@testing-library/dom"
 import userEvent from '@testing-library/user-event'
 import NewBillUI from "../views/NewBillUI.js"
-import NewBill from "../containers/NewBill.js"
+import NewBill, {updateBill} from "../containers/NewBill.js"
 import {localStorageMock} from "../__mocks__/localStorage.js";
 import mockStore from "../__mocks__/store.js"
 import { ROUTES, ROUTES_PATH } from '../constants/routes.js'
@@ -134,7 +134,7 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
         preventDefault: jest.fn(),
         target: formNewBill,
       })
-      
+      expect(handleSubmit).toHaveBeenCalled()
       expect(updateBillSpy).toHaveBeenCalled();
       expect(screen.getByText("Mes notes de frais")).toBeTruthy()
 
@@ -153,64 +153,52 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
 
  describe("Given I am a user connected as Employee",()=>{
   describe("When I submit Form",()=>{
-    test("Then the Bill is create with success, POST(201)", async()=>{
+    test("Then the Bill is create with success, POST(201)", ()=>{
       document.body.innerHTML = NewBillUI()
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee'
       }))
       const onNavigate = (pathname) => {
-        document.body.innerHTML = ROUTES({ pathname })
+        document.body.innerHTML = ROUTES({ pathname })}
+      window.alert = jest.fn();
+      
+      const newBill= new NewBill({ document, onNavigate, store:mockStore, localStorage: window.localStorage })
 
-        const newBill= new NewBill({ document, onNavigate, store:mockStore, localStorage:window.localStorage })
-        expect(newBill.fileUrl).toBe(null)
-        expect(newBill.fileName).toBe(null)
-        expect(newBill.billId).toBe(null)
+      const file = screen.getByTestId("file")
+      const myTestFile = new File([""], "monfichier.jpg", { type: "image/jpg" })
 
-        const form = screen.getAllByTestId('form-new-bill')
-        expect(form).toBeTruthy()
+      const handleChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
+      const createSpy = jest.spyOn(mockStore.bills(), 'create')
 
-        const myBill = {type:"Transports", 
-                        name:"Taxi aéroport", 
-                        date:"2023-07-06", 
-                        amount:100, vat:20, pct:20, 
-                        commentary:"Embouteillage", 
-                        fileUrl:"c://test/image.jpg", 
-                        fileName:"image.jpg", 
-                        status:"pending"}
+      file.addEventListener("change",handleChangeFile)
+      fireEvent.change(file, {target: {files: [myTestFile]}})
 
-        screen.getByTestId("expense-type").value = myBill.type
-        screen.getByTestId("expense-name").value = myBill.name
-        screen.getByTestId("datepicker").value = myBill.date
-        screen.getByTestId("amount").value = myBill.amount
-        screen.getByTestId("vat").value = myBill.vat
-        screen.getByTestId("pct").value = myBill.pct
-        screen.getByTestId("commentary").value = myBill.commentary
-       
-        const handleChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
-        const file = screen.getByTestId("file")
-        file.addEventListener("change",handleChangeFile)
-       
-        const createBillMock = jest.fn().mockResolvedValue({ fileUrl: myBill.fileUrl, key: '1234' })
-        jest.spyOn(newBill.mockStore.bills(), 'create').mockImplementation(createBillMock);
+      expect(handleChangeFile).toHaveBeenCalled()
+      expect(window.alert).not.toHaveBeenCalled()
+      expect(createSpy).toHaveBeenCalled()
+ 
+      const formNewBill = screen.getByTestId("form-new-bill")
+      userEvent.selectOptions(formNewBill.querySelector(`select[data-testid="expense-type"]`), 'Transports')
+      userEvent.type(formNewBill.querySelector(`input[data-testid="expense-name"]`), 'Apero collègue')
+      userEvent.type(formNewBill.querySelector(`input[data-testid="amount"]`), '100')
+      userEvent.type(formNewBill.querySelector(`input[data-testid="vat"]`), '20')
+      userEvent.type(formNewBill.querySelector(`input[data-testid="pct"]`), '10')
+      userEvent.type(formNewBill.querySelector(`textarea[data-testid="commentary"]`), 'C\'était cool !!')
+      const dateInput = formNewBill.querySelector(`input[data-testid="datepicker"]`)
+      dateInput.setAttribute('value', '2020-05-01')
+      userEvent.click(dateInput);
 
-        fireEvent.change(file, {target: {files: [myBill.fileUrl]}})
+      const handleSubmit = jest.spyOn(newBill,"handleSubmit")
+      const updateBillSpy = jest.spyOn(newBill, 'updateBill')
 
-        expect(createBillMock).toHaveBeenCalled()
-
-        const handleSubmit = jest.fn((e) => newBill.handleSubmit(e))
-        const updateBillSpy = jest.spyOn(newBill, 'updateBill')
-
-        form.addEventListener("submit", handleSubmit)
-        fireEvent.submit(form)
-        expect(handleSubmit).toHaveBeenCalledWith(form)
-        expect(updateBillSpy).toHaveBeenCalled()
-
-        expect(newBill.fileUrl).toBe("c://test/image.jpg")
-        expect(newBill.fileName).toBe("image.jpg")
-        expect(newBill.billId).toBe("1234")
-        expect(screen.getByText("Mes notes de frais")).toBeTruthy()
-      }
+      handleSubmit({
+        preventDefault: jest.fn(),
+        target: formNewBill,
+      })
+      expect(handleSubmit).toHaveBeenCalled()
+      expect(updateBillSpy).toHaveBeenCalled()
+      expect(screen.getByText("Mes notes de frais")).toBeTruthy()
     })
   })
 
@@ -278,4 +266,5 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
   })
 
 })
+
 

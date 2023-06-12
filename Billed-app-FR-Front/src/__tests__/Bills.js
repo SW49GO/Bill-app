@@ -51,17 +51,17 @@ describe("Given I am connected as an employee", () => {
       window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee'
       }))
-      const root = document.createElement("div");
-      root.setAttribute("id", "root");
-      document.body.append(root);
+      const root = document.createElement("div")
+      root.setAttribute("id", "root")
+      document.body.append(root)
       router()
-      window.onNavigate(ROUTES_PATH.Bills);
+      window.onNavigate(ROUTES_PATH.Bills)
 
       const handleClickNewBill = jest.fn();
-      const buttonNewBill = screen.getByTestId('btn-new-bill');
-      buttonNewBill.addEventListener('click', handleClickNewBill);
-      userEvent.click(buttonNewBill);
-      expect(handleClickNewBill).toHaveBeenCalled();
+      const buttonNewBill = screen.getByTestId('btn-new-bill')
+      buttonNewBill.addEventListener('click', handleClickNewBill)
+      userEvent.click(buttonNewBill)
+      expect(handleClickNewBill).toHaveBeenCalled()
       expect(screen.getByText("Envoyer une note de frais")).toBeTruthy()
     })
   })
@@ -78,7 +78,7 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
       router()
       window.onNavigate(ROUTES_PATH.Bills)
 
-      const PREVIOUS_LOCATION ='/';
+      const PREVIOUS_LOCATION ='/'
             window.onpopstate = (e) => {
               const user = JSON.parse(localStorage.getItem('user'))
               if (window.location.pathname === "/" && !user) {
@@ -89,8 +89,8 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
                 onNavigate(PREVIOUS_LOCATION)
               }
             }
-        window.onpopstate();
-        expect(document.body.innerHTML).toContain('Mes notes de frais');
+        window.onpopstate()
+        expect(document.body.innerHTML).toContain('Mes notes de frais')
     })
   })
 
@@ -100,28 +100,28 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
       window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee'
       }))
-      const root = document.createElement("div");
-      root.setAttribute("id", "root");
-      document.body.append(root);
+      const root = document.createElement("div")
+      root.setAttribute("id", "root")
+      document.body.append(root)
       router()
-      window.onNavigate(ROUTES_PATH.Bills);
-      $.fn.modal = jest.fn();
-      const handleClickIconEye = jest.fn();
-      const iconEyes = screen.getAllByTestId("icon-eye");
+      window.onNavigate(ROUTES_PATH.Bills)
+      $.fn.modal = jest.fn()
+      const handleClickIconEye = jest.fn()
+      const iconEyes = screen.getAllByTestId("icon-eye")
       if (iconEyes.length > 0) {
         const firstIconEyes = iconEyes[0]
-        firstIconEyes.addEventListener("click", () => handleClickIconEye(firstIconEyes));
-        userEvent.click(firstIconEyes);
-        expect(handleClickIconEye).toHaveBeenCalled();
-        expect($.fn.modal).toHaveBeenCalled();
+        firstIconEyes.addEventListener("click", () => handleClickIconEye(firstIconEyes))
+        userEvent.click(firstIconEyes)
+        expect(handleClickIconEye).toHaveBeenCalled()
+        expect($.fn.modal).toHaveBeenCalled()
       }
-      expect(screen.getByText("Justificatif")).toBeTruthy();
+      expect(screen.getByText("Justificatif")).toBeTruthy()
 
       //[Big Hunt] -Bills - Modal must show image
-      const imgElement = document.querySelector('img');
+      const imgElement = document.querySelector('img')
       expect(imgElement).toBeTruthy()
       expect(imgElement.src).not.toBe(null)
-      expect(imgElement.src.match(/\.(jpg|jpeg|png)/)).toBeTruthy();
+      expect(imgElement.src.match(/\.(jpg|jpeg|png)/)).toBeTruthy()
     })
   })
   describe("When I click on disconnect Button",()=>{
@@ -130,12 +130,12 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
         document.body.innerHTML = ROUTES({ pathname })
       }
       document.body.innerHTML = BillsUI({data:bills})
-      const getItemSpy = jest.spyOn(global.window.localStorage, 'getItem');
-      getItemSpy.mockReturnValue(JSON.stringify({ type: 'Employee' }));
+      const getItemSpy = jest.spyOn(global.window.localStorage, 'getItem')
+      getItemSpy.mockReturnValue(JSON.stringify({ type: 'Employee' }))
       
-      new Logout({ document, onNavigate, localStorage });
+      new Logout({ document, onNavigate, localStorage })
 
-      const disconnect =  $('#layout-disconnect');
+      const disconnect =  $('#layout-disconnect')
       disconnect.trigger('click')
       expect(screen.getByText("Employé")).toBeTruthy() 
     })
@@ -145,19 +145,19 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
 describe("Given I am connected as an employee, on Bills Page, and I click on EyeIcon",()=>{
   describe("When I click on the closing 'Cross'",()=>{
     test("Then the modal disappear",()=>{
-      document.body.innerHTML=BillsUI({data:bills});
-      $.fn.modal = jest.fn();
-      const handleClickIconEye = jest.fn();
-      const firstIconEyes = screen.getAllByTestId("icon-eye")[0];
-      firstIconEyes.addEventListener("click", () => handleClickIconEye(firstIconEyes));
-      fireEvent.click(firstIconEyes);
+      document.body.innerHTML=BillsUI({data:bills})
+      $.fn.modal = jest.fn()
+      const handleClickIconEye = jest.fn()
+      const firstIconEyes = screen.getAllByTestId("icon-eye")[0]
+      firstIconEyes.addEventListener("click", () => handleClickIconEye(firstIconEyes))
+      fireEvent.click(firstIconEyes)
 
       const modalClose = document.body.querySelector('.close')
-      const clickHandlerClose = jest.fn();
-      modalClose.addEventListener('click', clickHandlerClose);
-      userEvent.click(modalClose);
+      const clickHandlerClose = jest.fn()
+      modalClose.addEventListener('click', clickHandlerClose)
+      userEvent.click(modalClose)
       const modalContainer = document.body.querySelector('.modal')
-      expect(modalContainer.classList.contains('show')).toBeFalsy();
+      expect(modalContainer.classList.contains('show')).toBeFalsy()
     })
   })
 })
@@ -179,12 +179,12 @@ describe("Given I am a user connected as Employee",()=>{
       expect(getBillsMock).toHaveBeenCalled()
       expect(listBills.length).toBe(4)
 
-      await waitFor(() => screen.getAllByText("Mes notes de frais"));
-      expect(screen.getByText("Nouvelle note de frais")).toBeTruthy();
-      expect(screen.getAllByTestId("icon-eye")).toBeTruthy();
-      expect(screen.getByText("Services en ligne")).toBeTruthy();
-      expect(screen.getByText("100 €")).toBeTruthy();
-      expect(screen.getByText("Billed")).toBeTruthy();
+      await waitFor(() => screen.getAllByText("Mes notes de frais"))
+      expect(screen.getByText("Nouvelle note de frais")).toBeTruthy()
+      expect(screen.getAllByTestId("icon-eye")).toBeTruthy()
+      expect(screen.getByText("Services en ligne")).toBeTruthy()
+      expect(screen.getByText("100 €")).toBeTruthy()
+      expect(screen.getByText("Billed")).toBeTruthy()
     })
   })
   describe("When an error occurs on API", () => {
@@ -286,13 +286,13 @@ describe("Given I am a user connected as Employee",()=>{
           { doc: { date: '2023-05-04', status: undefined } }, 
         ]);
 
-        const consoleSpy = jest.spyOn(console, 'log');
-        const result = await allBills.getBills();
+        const consoleSpy = jest.spyOn(console, 'log')
+        const newListBills = await allBills.getBills()
   
-        await expect(mockStore.bills().list).toHaveBeenCalled();
-        expect(result.length).toBe(5); 
-        expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error), expect.stringContaining("for"), expect.objectContaining({ doc: { date: "incorrect date", status: "rejected" } }));
-        consoleSpy.mockRestore();
-      });
-    });
-  });  
+        await expect(mockStore.bills().list).toHaveBeenCalled()
+        expect(newListBills.length).toBe(5) 
+        expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error), expect.stringContaining("for"), expect.objectContaining({ doc: { date: "incorrect date", status: "rejected" } }))
+        consoleSpy.mockRestore()
+      })
+    })
+  })

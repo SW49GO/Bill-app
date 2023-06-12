@@ -21,7 +21,7 @@ export default class NewBill {
     const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
 //-----------//
     if (file){
-      const fileMimeType = file.type.toLowerCase();
+      const fileMimeType = file.type;
       const acceptedMimeTypes = ['image/jpg', 'image/jpeg', 'image/png', 'image/gif'];
       const btnSendBill = this.document.getElementById('btn-send-bill');
       if (!acceptedMimeTypes.includes(fileMimeType)) {
