@@ -368,17 +368,34 @@ describe("Given I am connect as Admin",()=>{
       document.body.innerHTML = DashboardUI({ data: bills  })
 
       const handleShowTickets = dashboard.handleShowTickets.bind({ counter: 1, index: 1 });
-      const index = 1;
-      const arrowIcon = screen.getByTestId(`arrow-icon${index}`);
+      const arrowIcon = screen.getByTestId(`arrow-icon1`);
       expect(arrowIcon).toBeTruthy()
-      const statusBillsContainer = document.getElementById(`status-bills-container${index}`);
+      const statusBillsContainer = document.getElementById(`status-bills-container1`);
       expect(statusBillsContainer).toBeTruthy()
       
       handleShowTickets(null, bills, 1);
       expect(statusBillsContainer.textContent).toBe('')
     })
   })
+  describe("When class NewBill is dashboard",()=>{
+    test("Then Constructor should initialize event click correctly",()=>{
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })
+      }
+      document.body.innerHTML= DashboardUI({data:bills})
 
-   
+      const clickSpy = jest.spyOn($.fn, 'trigger');
+      new Dashboard({ document, onNavigate, store: null, bills: bills, localStorage});
+      $('#arrow-icon1').trigger('click');
+      expect(clickSpy).toHaveBeenCalledWith('click');
+      $('#arrow-icon2').trigger('click');
+      expect(clickSpy).toHaveBeenCalledWith('click');
+      $('#arrow-icon3').trigger('click');
+      expect(clickSpy).toHaveBeenCalledWith('click');
+      
+    })
+  })
+  
 })
+
 

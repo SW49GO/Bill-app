@@ -25,7 +25,7 @@ export default class NewBill {
       const acceptedMimeTypes = ['image/jpg', 'image/jpeg', 'image/png', 'image/gif'];
       const btnSendBill = this.document.getElementById('btn-send-bill');
       if (!acceptedMimeTypes.includes(fileMimeType)) {
-        console.log('Format de fichier invalide, merci de charger un fichier de type image [jpg/jpeg/png/gif]');
+        window.alert('Format de fichier invalide, merci de charger un fichier de type image [jpg/jpeg/png]');
         btnSendBill.disabled=true;
         return;
       }else{

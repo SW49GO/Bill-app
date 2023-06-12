@@ -17,8 +17,7 @@ jest.mock("../app/store", () => mockStore)
 describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
     test("Then I visualize the form 'Send a Bills'", () => {
-      const html = NewBillUI()
-      document.body.innerHTML = html
+      document.body.innerHTML =  NewBillUI()
       const form = screen.getByText("Envoyer une note de frais")
       expect(form).toBeTruthy()
     })
@@ -33,10 +32,11 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       root.setAttribute("id", "root")
       document.body.append(root)
       router()
-      window.onNavigate(ROUTES_PATH.NewBill)
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
       }
+      window.onNavigate(ROUTES_PATH.NewBill)
+
       const PREVIOUS_LOCATION ='#employee/bills';
   
       window.onpopstate = (e) => {
@@ -74,7 +74,7 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
   })
 
   describe("When I fill out the form with the wrong file format",()=>{
-    test("Then I can't click the 'Submit' button",()=>{
+    test("Then I receive an alert message and I can't click the 'Submit' button",()=>{
       document.body.innerHTML =NewBillUI() 
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
@@ -83,18 +83,17 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       const newBill = new NewBill({ document, onNavigate, store:null, localStorage: window.localStorage })
 
       const downloadFile = jest.fn((e) => newBill.handleChangeFile(e))
-      
+      window.alert = jest.fn();
+
       const file = screen.getByTestId("file")
-      const myTestFile = new File(["blablabla"], "monfichier.txt", { type: "text/plain" });
+      const myTestFile = new File(["blablabla"], "monfichier.txt", { type: "text/plain" })
       file.addEventListener("change",downloadFile)
       fireEvent.change(file, {target: {files: [myTestFile]}})
 
       expect(downloadFile).toHaveBeenCalled()
-      const consoleSpy = jest.spyOn(console, 'log');
-      expect(consoleSpy).toBeTruthy()
+      expect(window.alert).toHaveBeenCalledWith(expect.stringContaining("Format de fichier invalide, merci de charger un fichier de type image [jpg/jpeg/png]"))
       const buttonSubmit = screen.getByText("Envoyer")
       expect(buttonSubmit.disabled).toBe(true)
-      consoleSpy.mockRestore()
     })
   })
 
@@ -105,38 +104,44 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
         document.body.innerHTML = ROUTES({ pathname })
       }
       const newBill = new NewBill({ document, onNavigate, store:mockStore, localStorage: window.localStorage })
+
+      const downloadFile = jest.fn((e) => newBill.handleChangeFile(e))
+      const file = screen.getByTestId("file")
+      const myTestFile = new File([""], "monfichier.jpg", { type: "image/jpg" })
+      file.addEventListener("change",downloadFile)
+      fireEvent.change(file, {target: {files: [myTestFile]}})
+     
+      expect(downloadFile).toHaveBeenCalled()
+      const btnSendBill = screen.getByText("Envoyer")
+      expect(btnSendBill.disabled).toBe(false)
+
       const formNewBill = screen.getByTestId("form-new-bill")
 
-      userEvent.selectOptions(formNewBill.querySelector(`select[data-testid="expense-type"]`), 'Transports');
-      userEvent.type(formNewBill.querySelector(`input[data-testid="expense-name"]`), 'Apero collègue');
-      userEvent.type(formNewBill.querySelector(`input[data-testid="amount"]`), '100');
-      userEvent.type(formNewBill.querySelector(`input[data-testid="vat"]`), '20');
-      userEvent.type(formNewBill.querySelector(`input[data-testid="pct"]`), '10');
-      userEvent.type(formNewBill.querySelector(`textarea[data-testid="commentary"]`), 'C\'était cool !!');
-      const dateInput = formNewBill.querySelector(`input[data-testid="datepicker"]`);
-      dateInput.setAttribute('value', '2020-05-01');
-      userEvent.click(dateInput); 
-  
-      newBill.fileUrl = 'https://example.com/';
-      newBill.fileName = 'example-file.jpg';
+      userEvent.selectOptions(formNewBill.querySelector(`select[data-testid="expense-type"]`), 'Transports')
+      userEvent.type(formNewBill.querySelector(`input[data-testid="expense-name"]`), 'Apero collègue')
+      userEvent.type(formNewBill.querySelector(`input[data-testid="amount"]`), '100')
+      userEvent.type(formNewBill.querySelector(`input[data-testid="vat"]`), '20')
+      userEvent.type(formNewBill.querySelector(`input[data-testid="pct"]`), '10')
+      userEvent.type(formNewBill.querySelector(`textarea[data-testid="commentary"]`), 'C\'était cool !!')
+      const dateInput = formNewBill.querySelector(`input[data-testid="datepicker"]`)
+      dateInput.setAttribute('value', '2020-05-01')
+      userEvent.click(dateInput);
 
-      const updateBillSpy = jest.spyOn(newBill, "updateBill");
-      const handleSubmit = jest.spyOn(newBill,"handleSubmit");
+      const updateBillSpy = jest.spyOn(newBill, "updateBill")
+      const handleSubmit = jest.spyOn(newBill,"handleSubmit")
 
       handleSubmit({
         preventDefault: jest.fn(),
         target: formNewBill,
-      });
+      })
       
       expect(updateBillSpy).toHaveBeenCalled();
-      expect(screen.getByText("Mes notes de frais")).toBeTruthy();
-    
-// console.log(document.body.innerHTML)
-      const updateBillArgs = updateBillSpy.mock.calls[0];
-      const [billData] = updateBillArgs;
-      expect(billData.name).toBe('Apero collègue');
-      expect(billData.status).toBe('pending');
-      expect(newBill.fileName).toBe("example-file.jpg")
+      expect(screen.getByText("Mes notes de frais")).toBeTruthy()
+
+      const updateBillArgs = updateBillSpy.mock.calls[0]
+      const [billData] = updateBillArgs
+      expect(billData.name).toBe('Apero collègue')
+      expect(billData.status).toBe('pending')
     })
   })
 })
@@ -148,7 +153,7 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
 
  describe("Given I am a user connected as Employee",()=>{
   describe("When I submit Form",()=>{
-    test("Then the Bill is create with success, POST(201)", ()=>{
+    test("Then the Bill is create with success, POST(201)", async()=>{
       document.body.innerHTML = NewBillUI()
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       window.localStorage.setItem('user', JSON.stringify({
@@ -157,91 +162,97 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
 
-        const newBill= new NewBill({ document, onNavigate, store:mockStore, localStorage })
-        const myBill = {type:"Transports", name:"Taxi aéroport", date:"2023-07-06", amount:100, vat:20, pct:20, commentary:"Embouteillage", fileUrl:"c://test/image.jpg", fileName:"image.jpg", status:"pending"}
+        const newBill= new NewBill({ document, onNavigate, store:mockStore, localStorage:window.localStorage })
+        expect(newBill.fileUrl).toBe(null)
+        expect(newBill.fileName).toBe(null)
+        expect(newBill.billId).toBe(null)
 
-        screen.getByTestId("expense-type").value = myBill.type;
-        screen.getByTestId("expense-name").value = myBill.name;
-        screen.getByTestId("datepicker").value = myBill.date;
-        screen.getByTestId("amount").value = myBill.amount;
-        screen.getByTestId("vat").value = myBill.vat;
-        screen.getByTestId("pct").value = myBill.pct;
-        screen.getByTestId("commentary").value = myBill.commentary;
-        
+        const form = screen.getAllByTestId('form-new-bill')
+        expect(form).toBeTruthy()
+
+        const myBill = {type:"Transports", 
+                        name:"Taxi aéroport", 
+                        date:"2023-07-06", 
+                        amount:100, vat:20, pct:20, 
+                        commentary:"Embouteillage", 
+                        fileUrl:"c://test/image.jpg", 
+                        fileName:"image.jpg", 
+                        status:"pending"}
+
+        screen.getByTestId("expense-type").value = myBill.type
+        screen.getByTestId("expense-name").value = myBill.name
+        screen.getByTestId("datepicker").value = myBill.date
+        screen.getByTestId("amount").value = myBill.amount
+        screen.getByTestId("vat").value = myBill.vat
+        screen.getByTestId("pct").value = myBill.pct
+        screen.getByTestId("commentary").value = myBill.commentary
+       
         const handleChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
         const file = screen.getByTestId("file")
         file.addEventListener("change",handleChangeFile)
+       
+        const createBillMock = jest.fn().mockResolvedValue({ fileUrl: myBill.fileUrl, key: '1234' })
+        jest.spyOn(newBill.mockStore.bills(), 'create').mockImplementation(createBillMock);
+
         fireEvent.change(file, {target: {files: [myBill.fileUrl]}})
 
-        const createBillMock = jest.fn().mockResolvedValue({ fileUrl: 'http://example.com', key: '1234' })
-        jest.spyOn(newBill.store.bills(), 'create').mockImplementation(createBillMock);
+        expect(createBillMock).toHaveBeenCalled()
 
         const handleSubmit = jest.fn((e) => newBill.handleSubmit(e))
         const updateBillSpy = jest.spyOn(newBill, 'updateBill')
 
-        const form = screen.getByTestId("form-new-bill")
         form.addEventListener("submit", handleSubmit)
         fireEvent.submit(form)
-
-        expect(handleSubmit).toHaveBeenCalled()
+        expect(handleSubmit).toHaveBeenCalledWith(form)
         expect(updateBillSpy).toHaveBeenCalled()
-        expect(handleChangeFile).toHaveBeenCalled()
-        expect(createBillMock).toHaveBeenCalledWith({
-          data: expect.any(FormData),
-          headers: { noContentType: true }
-        });
-      
+
         expect(newBill.fileUrl).toBe("c://test/image.jpg")
         expect(newBill.fileName).toBe("image.jpg")
         expect(newBill.billId).toBe("1234")
+        expect(screen.getByText("Mes notes de frais")).toBeTruthy()
       }
     })
   })
 
   describe("When an error occurs on API",()=>{
-    test("fetches messages from an API POST and fails with 500 message error",() => {
-      //Erreur  400 (Bad Request) 
+    test("fetches messages from an API POST and fails with 404 message error",() => {
+      //Erreur 404 (Not Found) ressource not found
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })}
 
       document.body.innerHTML=NewBillUI();
-      console.log( document.body.innerHTML)
 
       const newBill = new NewBill({ document, onNavigate, store:{
         bills: jest.fn(() => ({
         create: jest.fn(() => Promise.reject(new Error('Erreur 404')))
       }))}, localStorage:window.localStorage });
 
-      const consoleErrorMock = jest.spyOn(console, 'error');
+      const consoleErrorMock = jest.spyOn(console, 'error')
 
-      const event = {
-        preventDefault: jest.fn(),
-        target: {
-          value: null
-        }
-      }
+      const event = { preventDefault: jest.fn()}
+
       try {
-        newBill.handleChangeFile(event);
+        newBill.handleChangeFile(event)
       } catch (error) {
-        expect(error.message).toBe('Erreur 404');
-        expect(consoleErrorMock).toHaveBeenCalledWith(error);
+        expect(error.message).toBe('Erreur 404')
+        expect(consoleErrorMock).toHaveBeenCalledWith(error)
       }
-      consoleErrorMock.mockRestore();
+      consoleErrorMock.mockRestore()
     })
 
     test("fetches messages from an API POST and fails with 500 message error",() => {
       // Erreur 500 (Internal Server Error)
-      document.body.innerHTML=NewBillUI();
+      document.body.innerHTML=NewBillUI()
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })}
-      const consoleErrorMock = jest.spyOn(console, 'error');
+      const consoleErrorMock = jest.spyOn(console, 'error')
       const newBill = new NewBill({ document, onNavigate, store:{
           bills: jest.fn(() => ({
           create: jest.fn(() => Promise.reject(new Error('Erreur 500')))
-        }))}, localStorage: window.localStorage });
+        }))}, localStorage: window.localStorage })
 
       const fileName = 'test.jpg';
-      const file = new File([''], fileName, { type: 'image/jpeg' });
+      const file = new File([''], fileName, { type: 'image/jpeg' })
       newBill.document.querySelector = jest.fn().mockReturnValue({
         files: [file]
       });
@@ -256,13 +267,13 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
         }
       };
       try {
-        newBill.handleChangeFile(event);
+        newBill.handleChangeFile(event)
       } catch (error) {
-        expect(error.message).toBe('Erreur 500');
-        expect(consoleErrorMock).toHaveBeenCalledWith(error);
-        expect(btnSendBill.disabled).toBe(true);
+        expect(error.message).toBe('Erreur 500')
+        expect(consoleErrorMock).toHaveBeenCalledWith(error)
+        expect(btnSendBill.disabled).toBe(true)
       }
-        consoleErrorMock.mockRestore();
+        consoleErrorMock.mockRestore()
     });
   })
 

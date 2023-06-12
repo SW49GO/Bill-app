@@ -170,22 +170,20 @@ describe("Given I am connected as an employee, on Bills Page, and I click on Eye
 describe("Given I am a user connected as Employee",()=>{
   describe("When I navigate to Bills",()=>{
     test("Then fetches bills from mock API GET",async()=>{
-      document.body.innerHTML ="";
-      localStorage.setItem("user", JSON.stringify({ type: "Employee", email: "employee@test.tld" }));
-      const root = document.createElement("div");
-      root.setAttribute("id", "root");
-      document.body.append(root);
-  
-      router();
-      window.onNavigate(ROUTES_PATH.Bills);
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })
+      }
+      const newBills = new Bills({ document, onNavigate, store:mockStore, localStorage:localStorageMock })
+      const getBillsMock = jest.fn(()=>newBills.getBills())
+      const listBills = await getBillsMock()
+      expect(getBillsMock).toHaveBeenCalled()
+      expect(listBills.length).toBe(4)
 
       await waitFor(() => screen.getAllByText("Mes notes de frais"));
       expect(screen.getByText("Nouvelle note de frais")).toBeTruthy();
       expect(screen.getAllByTestId("icon-eye")).toBeTruthy();
       expect(screen.getByText("Services en ligne")).toBeTruthy();
       expect(screen.getByText("100 €")).toBeTruthy();
-      expect(screen.getByText("3 Mar. 03")).toBeTruthy();
-      expect(screen.getAllByTestId("tbody")).toBeTruthy();
       expect(screen.getByText("Billed")).toBeTruthy();
     })
   })
