@@ -6,6 +6,7 @@ import LoginUI from "../views/LoginUI";
 import Login from "../containers/Login.js";
 import { ROUTES } from "../constants/routes";
 import { fireEvent, screen } from "@testing-library/dom";
+import userEvent from "@testing-library/user-event";
 
 describe("Given that I am a user on login page", () => {
   describe("When I do not fill fields and I click on employee button Login In", () => {
@@ -46,6 +47,32 @@ describe("Given that I am a user on login page", () => {
       fireEvent.submit(form);
       expect(screen.getByTestId("form-employee")).toBeTruthy();
     });
+
+    // COVERAGE handleSubmitEmployee -> catch -> createUser
+    test("Then It should create default User",async () =>{
+      document.body.innerHTML = LoginUI();
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })
+      }
+      const PREVIOUS_LOCATION=''
+      const store=''
+      const newLogin = new Login({ document, localStorage:window.localStorage, onNavigate, PREVIOUS_LOCATION, store })
+
+      const form = screen.getByTestId("form-employee");
+      userEvent.type(form.querySelector(`input[data-testid="employee-email-input"]`),"Anonymous")
+      userEvent.type(form.querySelector(`input[data-testid="employee-password-input"]`),"1234")
+
+      const handleSubmit = jest.fn((e) => e.preventDefault())
+      const login = jest.spyOn(newLogin, 'login').mockRejectedValue(new Error('Erreur d\'identification'));
+      const createUser = jest.spyOn(newLogin, 'createUser')
+      form.addEventListener("submit", handleSubmit);
+      
+      fireEvent.submit(form)
+      await Promise.resolve();
+      expect(handleSubmit).toHaveBeenCalled()
+      expect(login).toHaveBeenCalled()
+      expect(createUser).toHaveBeenCalled()
+    })
   });
 
   describe("When I do fill fields in correct format and I click on employee button Login In", () => {
@@ -156,6 +183,31 @@ describe("Given that I am a user on login page", () => {
       fireEvent.submit(form);
       expect(screen.getByTestId("form-admin")).toBeTruthy();
     });
+    // COVERAGE handleSubmitAdmin -> catch -> createUser
+    test("Then It should create default User",async () =>{
+      document.body.innerHTML = LoginUI();
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })
+      }
+      const PREVIOUS_LOCATION=''
+      const store=''
+      const newLogin = new Login({ document, localStorage:window.localStorage, onNavigate, PREVIOUS_LOCATION, store })
+
+      const form = screen.getByTestId("form-admin");
+      userEvent.type(form.querySelector(`input[data-testid="admin-email-input"]`),"Anonymous")
+      userEvent.type(form.querySelector(`input[data-testid="admin-password-input"]`),"1234")
+
+      const handleSubmit = jest.fn((e) => e.preventDefault())
+      const login = jest.spyOn(newLogin, 'login').mockRejectedValue(new Error('Erreur d\'identification'));
+      const createUser = jest.spyOn(newLogin, 'createUser')
+      form.addEventListener("submit", handleSubmit);
+      
+      fireEvent.submit(form)
+      await Promise.resolve();
+      expect(handleSubmit).toHaveBeenCalled()
+      expect(login).toHaveBeenCalled()
+      expect(createUser).toHaveBeenCalled()
+    })
   });
 
   describe("When I do fill fields in correct format and I click on admin button Login In", () => {

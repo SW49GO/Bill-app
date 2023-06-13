@@ -153,7 +153,7 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
 
  describe("Given I am a user connected as Employee",()=>{
   describe("When I submit Form",()=>{
-    test("Then the Bill is create with success, POST(201)", ()=>{
+    test("Then the Bill is create with success, POST(201)", async()=>{
       document.body.innerHTML = NewBillUI()
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       window.localStorage.setItem('user', JSON.stringify({
@@ -176,7 +176,12 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
 
       expect(handleChangeFile).toHaveBeenCalled()
       expect(window.alert).not.toHaveBeenCalled()
+      await new Promise(process.nextTick);
       expect(createSpy).toHaveBeenCalled()
+   
+      expect(newBill.fileName).not.toBe(null)
+      expect(newBill.fileUrl).not.toBe(null)
+      expect(newBill.billId).toBe('1234')
  
       const formNewBill = screen.getByTestId("form-new-bill")
       userEvent.selectOptions(formNewBill.querySelector(`select[data-testid="expense-type"]`), 'Transports')
