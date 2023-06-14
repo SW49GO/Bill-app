@@ -238,7 +238,7 @@ describe('Given I am connected as Admin and I am on Dashboard page and I clicked
       eye.addEventListener('click', handleClickIconEye)
       userEvent.click(eye)
       expect(handleClickIconEye).toHaveBeenCalled()
-
+      // Result the modal is open
       const modale = screen.getByTestId('modaleFileAdmin')
       expect(modale).toBeTruthy()
     })
@@ -349,11 +349,12 @@ describe("Given I am connect as Admin",()=>{
       const email = bill.email.split('@')[0].split('.')
       const expectedFirstName = email.length > 0 ? email[0] : ''
       const expectedLastName = email.length > 1 ? email[1] : email[0]
+      // Result FirstName and LastName is shown
       expect(myCard).toContain(`${expectedFirstName} ${expectedLastName}`)
     })
   })
-  describe("When I am on Dashboard page and I click on arrow when cards list close",()=>{
-    test("Then the cards list is open",()=>{
+  describe("When I am on Dashboard page and I click on arrow when cards list open",()=>{
+    test("Then the cards list is close",()=>{
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
       }
@@ -374,6 +375,7 @@ describe("Given I am connect as Admin",()=>{
       expect(statusBillsContainer).toBeTruthy()
       
       handleShowTickets(null, bills, 1)
+      // Result the div card is empty
       expect(statusBillsContainer.textContent).toBe('')
     })
   })
@@ -387,6 +389,7 @@ describe("Given I am connect as Admin",()=>{
       const clickSpy = jest.spyOn($.fn, 'trigger');
       new Dashboard({ document, onNavigate, store: null, bills: bills, localStorage})
       $('#arrow-icon1').trigger('click');
+      // Result each event is correctly initialize
       expect(clickSpy).toHaveBeenCalledWith('click')
       $('#arrow-icon2').trigger('click');
       expect(clickSpy).toHaveBeenCalledWith('click')

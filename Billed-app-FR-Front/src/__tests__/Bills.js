@@ -20,7 +20,7 @@ jest.mock("../app/store", () => mockStore)
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
     test("Then bill icon in vertical layout should be highlighted", async () => {
-
+      // Simulation of localStorage
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee'
@@ -32,8 +32,8 @@ describe("Given I am connected as an employee", () => {
       window.onNavigate(ROUTES_PATH.Bills)
       await waitFor(() => screen.getByTestId('icon-window'))
       const windowIcon = screen.getByTestId('icon-window')
-      //to-do write expect expression
-      expect(windowIcon.classList.contains("active-icon")).toBe(true);
+      //to-do write expect expression  // Result for icon highlighted
+      expect(windowIcon.classList.contains("active-icon")).toBe(true);  
     })
 
     test("Then bills should be ordered from earliest to latest", () => {
@@ -56,12 +56,13 @@ describe("Given I am connected as an employee", () => {
       document.body.append(root)
       router()
       window.onNavigate(ROUTES_PATH.Bills)
-
+      // Simulation function
       const handleClickNewBill = jest.fn();
       const buttonNewBill = screen.getByTestId('btn-new-bill')
       buttonNewBill.addEventListener('click', handleClickNewBill)
       userEvent.click(buttonNewBill)
       expect(handleClickNewBill).toHaveBeenCalled()
+      // Result I am on NewBill Page
       expect(screen.getByText("Envoyer une note de frais")).toBeTruthy()
     })
   })
@@ -77,20 +78,16 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
       document.body.append(root)
       router()
       window.onNavigate(ROUTES_PATH.Bills)
-
-      const PREVIOUS_LOCATION ='/'
-            window.onpopstate = (e) => {
-              const user = JSON.parse(localStorage.getItem('user'))
-              if (window.location.pathname === "/" && !user) {
-                document.body.style.backgroundColor="#0E5AE5"
-                root.innerHTML = ROUTES({ pathname: window.location.pathname })
-              }
-              else if (user) {
-                onNavigate(PREVIOUS_LOCATION)
-              }
-            }
-        window.onpopstate()
-        expect(document.body.innerHTML).toContain('Mes notes de frais')
+      const PREVIOUS_LOCATION ='/';
+      window.onpopstate = () => {
+        const user = JSON.parse(localStorage.getItem('user'))
+        if (user) {
+          onNavigate(PREVIOUS_LOCATION)
+        }
+      }
+      window.onpopstate()
+        // Result I stay on Bills page
+      expect(document.body.innerHTML).toContain('Mes notes de frais')
     })
   })
 
@@ -105,6 +102,7 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
       document.body.append(root)
       router()
       window.onNavigate(ROUTES_PATH.Bills)
+      // Simulation of the "modal" method of the JQuery library
       $.fn.modal = jest.fn()
       const handleClickIconEye = jest.fn()
       const iconEyes = screen.getAllByTestId("icon-eye")
@@ -115,6 +113,7 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
         expect(handleClickIconEye).toHaveBeenCalled()
         expect($.fn.modal).toHaveBeenCalled()
       }
+      // Result the modal is open
       expect(screen.getByText("Justificatif")).toBeTruthy()
 
       //[Big Hunt] -Bills - Modal must show image
@@ -126,17 +125,22 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
   })
   describe("When I click on disconnect Button",()=>{
     test("Then I am redirected to the 'Login' page",()=>{
+      // Simulation of navigation
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
       }
       document.body.innerHTML = BillsUI({data:bills})
+      // Spy function on browser localStorage getItem calls
       const getItemSpy = jest.spyOn(global.window.localStorage, 'getItem')
+      // Return JSON string {"type": "Employee"} on every call to getItem
       getItemSpy.mockReturnValue(JSON.stringify({ type: 'Employee' }))
       
       new Logout({ document, onNavigate, localStorage })
-
+      // Select ID
       const disconnect =  $('#layout-disconnect')
+      // Triggering the Click
       disconnect.trigger('click')
+      // Result I am on Login Page
       expect(screen.getByText("Employé")).toBeTruthy() 
     })
   })
@@ -157,6 +161,7 @@ describe("Given I am connected as an employee, on Bills Page, and I click on Eye
       modalClose.addEventListener('click', clickHandlerClose)
       userEvent.click(modalClose)
       const modalContainer = document.body.querySelector('.modal')
+      // Result the modal class "show" disappear
       expect(modalContainer.classList.contains('show')).toBeFalsy()
     })
   })
@@ -174,9 +179,11 @@ describe("Given I am a user connected as Employee",()=>{
         document.body.innerHTML = ROUTES({ pathname })
       }
       const newBills = new Bills({ document, onNavigate, store:mockStore, localStorage:localStorageMock })
+      // Simulation function for getBills method
       const getBillsMock = jest.fn(()=>newBills.getBills())
       const listBills = await getBillsMock()
       expect(getBillsMock).toHaveBeenCalled()
+      // Result 4 bills render
       expect(listBills.length).toBe(4)
 
       await waitFor(() => screen.getAllByText("Mes notes de frais"))
@@ -189,6 +196,7 @@ describe("Given I am a user connected as Employee",()=>{
   })
   describe("When an error occurs on API", () => {
     beforeEach(() => {
+      // Spy function bills of mockStore
       jest.spyOn(mockStore, "bills")
       Object.defineProperty(
           window,
@@ -206,6 +214,7 @@ describe("Given I am a user connected as Employee",()=>{
     })
     test("fetches bills from an API and fails with 400 message error", async () => {
       //Erreur 400 (Bad Request) syntax request, ressource not found, bad URL
+      // Custom implementation of the bills method that will only be executed once
       mockStore.bills.mockImplementationOnce(() => {
         return {
           list : () =>  {
@@ -213,8 +222,10 @@ describe("Given I am a user connected as Employee",()=>{
           }
         }})
       window.onNavigate(ROUTES_PATH.Bills)
+      // The code is suspended until the promise is resolved
       await new Promise(process.nextTick);
       const message = screen.getByText(/Erreur 400/)
+      // Result message correct
       expect(message).toBeTruthy()
     })
     test("fetches bills from an API and fails with 401 message error", async () => {
@@ -271,13 +282,8 @@ describe("Given I am a user connected as Employee",()=>{
         const onNavigate = (pathname) => {
           document.body.innerHTML = ROUTES({ pathname })
         }
-        const allBills = new Bills({
-          document,
-          onNavigate,
-          store: mockStore,
-          localStorage: window.localStorage,
-        });
-    
+        const allBills = new Bills({document, onNavigate,store: mockStore,localStorage: window.localStorage });
+        // Configuration list method return value once
         mockStore.bills().list = jest.fn().mockResolvedValueOnce([
           { doc: { date: '2023-05-01', status: 'accepted' } },
           { doc: { date: '2023-06-01', status: 'accepted' } },
@@ -290,8 +296,10 @@ describe("Given I am a user connected as Employee",()=>{
         const newListBills = await allBills.getBills()
   
         await expect(mockStore.bills().list).toHaveBeenCalled()
+        // Result correct for render
         expect(newListBills.length).toBe(5) 
         expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error), expect.stringContaining("for"), expect.objectContaining({ doc: { date: "incorrect date", status: "rejected" } }))
+        // Restore the console.log
         consoleSpy.mockRestore()
       })
     })

@@ -19,6 +19,7 @@ describe("Given I am connected as an employee", () => {
     test("Then I visualize the form 'Send a Bills'", () => {
       document.body.innerHTML =  NewBillUI()
       const form = screen.getByText("Envoyer une note de frais")
+      // Result the form is identify
       expect(form).toBeTruthy()
     })
   })
@@ -39,17 +40,14 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
 
       const PREVIOUS_LOCATION ='#employee/bills';
   
-      window.onpopstate = (e) => {
+      window.onpopstate = () => {
         const user = JSON.parse(localStorage.getItem('user'))
-        if (window.location.pathname === "/" && !user) {
-          document.body.style.backgroundColor="#0E5AE5"
-          root.innerHTML = ROUTES({ pathname: window.location.pathname })
-        }
-        else if (user) {
+        if (user) {
           onNavigate(PREVIOUS_LOCATION)
         }
       }
       window.onpopstate();
+      // Result I am redirected to Bills Page
       expect(document.body.innerHTML).toContain('Mes notes de frais');
     })
   })
@@ -62,7 +60,7 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       const buttonNewBill = jest.fn((e) => e.preventDefault())
       form.addEventListener("submit", buttonNewBill)
       fireEvent.submit(form)
-
+      // Result I can see form
       expect(form).toBeTruthy()
       expect((screen.getByTestId("expense-name")).value).toBe('')
       expect((screen.getByTestId("amount")).value).toBe('')
@@ -86,10 +84,12 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       window.alert = jest.fn();
 
       const file = screen.getByTestId("file")
+      // Create a file
       const myTestFile = new File(["blablabla"], "monfichier.txt", { type: "text/plain" })
       file.addEventListener("change",downloadFile)
       fireEvent.change(file, {target: {files: [myTestFile]}})
 
+      // Result a message appear and I can't click button submit
       expect(downloadFile).toHaveBeenCalled()
       expect(window.alert).toHaveBeenCalledWith(expect.stringContaining("Format de fichier invalide, merci de charger un fichier de type image [jpg/jpeg/png]"))
       const buttonSubmit = screen.getByText("Envoyer")
@@ -136,11 +136,13 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       })
       expect(handleSubmit).toHaveBeenCalled()
       expect(updateBillSpy).toHaveBeenCalled();
+      // Result I am on Bills Page
       expect(screen.getByText("Mes notes de frais")).toBeTruthy()
 
       const updateBillArgs = updateBillSpy.mock.calls[0]
       const [billData] = updateBillArgs
       expect(billData.name).toBe('Apero collègue')
+      // Result Bills is in pending status
       expect(billData.status).toBe('pending')
     })
   })
@@ -177,8 +179,9 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       expect(handleChangeFile).toHaveBeenCalled()
       expect(window.alert).not.toHaveBeenCalled()
       await new Promise(process.nextTick);
+      // Result create is calles
       expect(createSpy).toHaveBeenCalled()
-   
+      // Result constructor NewBill is update
       expect(newBill.fileName).not.toBe(null)
       expect(newBill.fileUrl).not.toBe(null)
       expect(newBill.billId).toBe('1234')
@@ -202,7 +205,9 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
         target: formNewBill,
       })
       expect(handleSubmit).toHaveBeenCalled()
+      // Result update is called
       expect(updateBillSpy).toHaveBeenCalled()
+      // Result after validation we are redirected to Bills
       expect(screen.getByText("Mes notes de frais")).toBeTruthy()
     })
   })
@@ -210,11 +215,11 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
   describe("When an error occurs on API",()=>{
     test("fetches messages from an API POST and fails with 404 message error",() => {
       //Erreur 404 (Not Found) ressource not found
+      document.body.innerHTML=NewBillUI();
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })}
-
-      document.body.innerHTML=NewBillUI();
-
+        
+      // Simulation method create reject promise
       const newBill = new NewBill({ document, onNavigate, store:{
         bills: jest.fn(() => ({
         create: jest.fn(() => Promise.reject(new Error('Erreur 404')))
@@ -269,7 +274,4 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
         consoleErrorMock.mockRestore()
     });
   })
-
 })
-
-
