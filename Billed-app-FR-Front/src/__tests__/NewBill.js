@@ -19,7 +19,7 @@ describe("Given I am connected as an employee", () => {
     test("Then I visualize the form 'Send a Bills'", () => {
       document.body.innerHTML =  NewBillUI()
       const form = screen.getByText("Envoyer une note de frais")
-      // Result the form is identify
+      // Result ok if I can see "Envoyer une note de frais" in NewPage
       expect(form).toBeTruthy()
     })
   })
@@ -27,8 +27,8 @@ describe("Given I am connected as an employee", () => {
 describe("Given I am connected as an employee, I am on NewBill Page",()=>{
   describe("When I click on the 'Back' button of the browser",()=>{
     test("Then I am redirected to the Bills page",()=>{
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock})
-      window.localStorage.setItem('user', JSON.stringify({type: 'Employee'}))
+      Object.defineProperty(window, "localStorage", { value: localStorageMock})
+      window.localStorage.setItem("user", JSON.stringify({type: "Employee"}))
       const root = document.createElement("div")
       root.setAttribute("id", "root")
       document.body.append(root)
@@ -37,7 +37,6 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
         document.body.innerHTML = ROUTES({ pathname })
       }
       window.onNavigate(ROUTES_PATH.NewBill)
-
       const PREVIOUS_LOCATION ='#employee/bills';
   
       window.onpopstate = () => {
@@ -47,8 +46,9 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
         }
       }
       window.onpopstate();
-      // Result I am redirected to Bills Page
-      expect(document.body.innerHTML).toContain('Mes notes de frais');
+
+      // Result ok if I am redirected to Bills Page that contain "Mes notes de frais"
+      expect(document.body.innerHTML).toContain("Mes notes de frais");
     })
   })
 
@@ -60,7 +60,8 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       const buttonNewBill = jest.fn((e) => e.preventDefault())
       form.addEventListener("submit", buttonNewBill)
       fireEvent.submit(form)
-      // Result I can see form
+
+      // Result ok if I can see the form with empty fields and the button to send is here
       expect(form).toBeTruthy()
       expect((screen.getByTestId("expense-name")).value).toBe('')
       expect((screen.getByTestId("amount")).value).toBe('')
@@ -89,7 +90,7 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       file.addEventListener("change",downloadFile)
       fireEvent.change(file, {target: {files: [myTestFile]}})
 
-      // Result a message appear and I can't click button submit
+      // Result ok if download have been called, a message appear and button submit is disabled
       expect(downloadFile).toHaveBeenCalled()
       expect(window.alert).toHaveBeenCalledWith(expect.stringContaining("Format de fichier invalide, merci de charger un fichier de type image [jpg/jpeg/png]"))
       const buttonSubmit = screen.getByText("Envoyer")
@@ -117,14 +118,14 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
 
       const formNewBill = screen.getByTestId("form-new-bill")
 
-      userEvent.selectOptions(formNewBill.querySelector(`select[data-testid="expense-type"]`), 'Transports')
-      userEvent.type(formNewBill.querySelector(`input[data-testid="expense-name"]`), 'Apero collègue')
-      userEvent.type(formNewBill.querySelector(`input[data-testid="amount"]`), '100')
-      userEvent.type(formNewBill.querySelector(`input[data-testid="vat"]`), '20')
-      userEvent.type(formNewBill.querySelector(`input[data-testid="pct"]`), '10')
-      userEvent.type(formNewBill.querySelector(`textarea[data-testid="commentary"]`), 'C\'était cool !!')
+      userEvent.selectOptions(formNewBill.querySelector(`select[data-testid="expense-type"]`), "Transports")
+      userEvent.type(formNewBill.querySelector(`input[data-testid="expense-name"]`), "Apero collègue")
+      userEvent.type(formNewBill.querySelector(`input[data-testid="amount"]`), "100")
+      userEvent.type(formNewBill.querySelector(`input[data-testid="vat"]`), "20")
+      userEvent.type(formNewBill.querySelector(`input[data-testid="pct"]`), "10")
+      userEvent.type(formNewBill.querySelector(`textarea[data-testid="commentary"]`), "C\'était cool !!")
       const dateInput = formNewBill.querySelector(`input[data-testid="datepicker"]`)
-      dateInput.setAttribute('value', '2020-05-01')
+      dateInput.setAttribute("value", "2020-05-01")
       userEvent.click(dateInput);
 
       const updateBillSpy = jest.spyOn(newBill, "updateBill")
@@ -134,16 +135,20 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
         preventDefault: jest.fn(),
         target: formNewBill,
       })
+      // Result ok if "handleSubmit" and "updateBillSpy" have been called
       expect(handleSubmit).toHaveBeenCalled()
       expect(updateBillSpy).toHaveBeenCalled();
-      // Result I am on Bills Page
+
+      // Result ok If I am on Bills Page
       expect(screen.getByText("Mes notes de frais")).toBeTruthy()
 
       const updateBillArgs = updateBillSpy.mock.calls[0]
       const [billData] = updateBillArgs
-      expect(billData.name).toBe('Apero collègue')
-      // Result Bills is in pending status
-      expect(billData.status).toBe('pending')
+
+      // Result ok if the data received by "updateBillArgs" is correct
+      expect(billData.name).toBe("Apero collègue")
+      // Result ok if the Bills default status is "pending"
+      expect(billData.status).toBe("pending")
     })
   })
 })
@@ -157,9 +162,9 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
   describe("When I submit Form",()=>{
     test("Then the Bill is create with success, POST(201)", async()=>{
       document.body.innerHTML = NewBillUI()
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Employee'
+      Object.defineProperty(window, "localStorage", { value: localStorageMock })
+      window.localStorage.setItem("user", JSON.stringify({
+        type: "Employee"
       }))
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })}
@@ -171,7 +176,7 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       const myTestFile = new File([""], "monfichier.jpg", { type: "image/jpg" })
 
       const handleChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
-      const createSpy = jest.spyOn(mockStore.bills(), 'create')
+      const createSpy = jest.spyOn(mockStore.bills(), "create")
 
       file.addEventListener("change",handleChangeFile)
       fireEvent.change(file, {target: {files: [myTestFile]}})
@@ -179,35 +184,36 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       expect(handleChangeFile).toHaveBeenCalled()
       expect(window.alert).not.toHaveBeenCalled()
       await new Promise(process.nextTick);
-      // Result create is calles
+
+      // Result ok if "createSpy" have been called
       expect(createSpy).toHaveBeenCalled()
-      // Result constructor NewBill is update
+      // Result ok if NewBill's Constructor have been updated
       expect(newBill.fileName).not.toBe(null)
       expect(newBill.fileUrl).not.toBe(null)
-      expect(newBill.billId).toBe('1234')
+      expect(newBill.billId).toBe("1234")
  
       const formNewBill = screen.getByTestId("form-new-bill")
-      userEvent.selectOptions(formNewBill.querySelector(`select[data-testid="expense-type"]`), 'Transports')
-      userEvent.type(formNewBill.querySelector(`input[data-testid="expense-name"]`), 'Apero collègue')
-      userEvent.type(formNewBill.querySelector(`input[data-testid="amount"]`), '100')
-      userEvent.type(formNewBill.querySelector(`input[data-testid="vat"]`), '20')
-      userEvent.type(formNewBill.querySelector(`input[data-testid="pct"]`), '10')
-      userEvent.type(formNewBill.querySelector(`textarea[data-testid="commentary"]`), 'C\'était cool !!')
+      userEvent.selectOptions(formNewBill.querySelector(`select[data-testid="expense-type"]`), "Transports")
+      userEvent.type(formNewBill.querySelector(`input[data-testid="expense-name"]`), "Apero collègue")
+      userEvent.type(formNewBill.querySelector(`input[data-testid="amount"]`), "100")
+      userEvent.type(formNewBill.querySelector(`input[data-testid="vat"]`), "20")
+      userEvent.type(formNewBill.querySelector(`input[data-testid="pct"]`), "10")
+      userEvent.type(formNewBill.querySelector(`textarea[data-testid="commentary"]`), "C\'était cool !!")
       const dateInput = formNewBill.querySelector(`input[data-testid="datepicker"]`)
-      dateInput.setAttribute('value', '2020-05-01')
+      dateInput.setAttribute("value", "2020-05-01")
       userEvent.click(dateInput);
 
       const handleSubmit = jest.spyOn(newBill,"handleSubmit")
-      const updateBillSpy = jest.spyOn(newBill, 'updateBill')
+      const updateBillSpy = jest.spyOn(newBill, "updateBill")
 
       handleSubmit({
         preventDefault: jest.fn(),
         target: formNewBill,
       })
       expect(handleSubmit).toHaveBeenCalled()
-      // Result update is called
       expect(updateBillSpy).toHaveBeenCalled()
-      // Result after validation we are redirected to Bills
+
+      // Result ok if after validation we have been redirected to Bills
       expect(screen.getByText("Mes notes de frais")).toBeTruthy()
     })
   })
@@ -222,17 +228,18 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       // Simulation method create reject promise
       const newBill = new NewBill({ document, onNavigate, store:{
         bills: jest.fn(() => ({
-        create: jest.fn(() => Promise.reject(new Error('Erreur 404')))
+        create: jest.fn(() => Promise.reject(new Error("Erreur 404")))
       }))}, localStorage:window.localStorage });
 
-      const consoleErrorMock = jest.spyOn(console, 'error')
+      const consoleErrorMock = jest.spyOn(console, "error")
 
       const event = { preventDefault: jest.fn()}
 
       try {
         newBill.handleChangeFile(event)
       } catch (error) {
-        expect(error.message).toBe('Erreur 404')
+        // Result ok if the message error is "Erreur 404" and be send in the console.error
+        expect(error.message).toBe("Erreur 404")
         expect(consoleErrorMock).toHaveBeenCalledWith(error)
       }
       consoleErrorMock.mockRestore()
@@ -243,31 +250,33 @@ describe("Given I am connected as an employee, I am on NewBill Page",()=>{
       document.body.innerHTML=NewBillUI()
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })}
-      const consoleErrorMock = jest.spyOn(console, 'error')
+      const consoleErrorMock = jest.spyOn(console, "error")
       const newBill = new NewBill({ document, onNavigate, store:{
           bills: jest.fn(() => ({
-          create: jest.fn(() => Promise.reject(new Error('Erreur 500')))
+          create: jest.fn(() => Promise.reject(new Error("Erreur 500")))
         }))}, localStorage: window.localStorage })
 
-      const fileName = 'test.jpg';
-      const file = new File([''], fileName, { type: 'image/jpeg' })
+      const fileName = "test.jpg";
+      const file = new File([''], fileName, { type: "image/jpeg" })
       newBill.document.querySelector = jest.fn().mockReturnValue({
         files: [file]
       });
 
-      const btnSendBill = newBill.document.getElementById('btn-send-bill');
+      const btnSendBill = newBill.document.getElementById("btn-send-bill");
+      // Result ok if the button to send is not disabled
       expect(btnSendBill.disabled).toBe(false);
         
       const event = {
         preventDefault: jest.fn(),
         target: {
-          value: 'C:\\test\\test.jpg'
+          value: "C:\\test\\test.jpg"
         }
       };
       try {
         newBill.handleChangeFile(event)
       } catch (error) {
-        expect(error.message).toBe('Erreur 500')
+        // Result ok if the message error is "Erreur 404",be send in the console.error and button to submit is disabled
+        expect(error.message).toBe("Erreur 500")
         expect(consoleErrorMock).toHaveBeenCalledWith(error)
         expect(btnSendBill.disabled).toBe(true)
       }

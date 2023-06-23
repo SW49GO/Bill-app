@@ -21,18 +21,21 @@ describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
     test("Then bill icon in vertical layout should be highlighted", async () => {
       // Simulation of localStorage
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Employee'
+      Object.defineProperty(window, "localStorage", { value: localStorageMock })
+      window.localStorage.setItem("user", JSON.stringify({
+        type: "Employee"
       }))
+      // Simulation of a DOM environment
       const root = document.createElement("div")
       root.setAttribute("id", "root")
       document.body.append(root)
       router()
       window.onNavigate(ROUTES_PATH.Bills)
-      await waitFor(() => screen.getByTestId('icon-window'))
-      const windowIcon = screen.getByTestId('icon-window')
-      //to-do write expect expression  // Result for icon highlighted
+      // Wait until the page is loaded
+      await waitFor(() => screen.getByTestId("icon-window"))
+      const windowIcon = screen.getByTestId("icon-window")
+
+      // Result ok if in the list of class for "windowIcon" we have "active-icon"
       expect(windowIcon.classList.contains("active-icon")).toBe(true);  
     })
 
@@ -41,15 +44,16 @@ describe("Given I am connected as an employee", () => {
       const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
       const antiChrono = (a, b) => ((a < b) ? 1 : -1)
       const datesSorted = [...dates].sort(antiChrono)
+      // Result ok if "dates" is ordered like "datesSorted"
       expect(dates).toEqual(datesSorted)
     })
   })
 
   describe("When I click on the 'New Bill' button",()=>{
     test("Then I am directed to the NewBill page",()=>{
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Employee'
+      Object.defineProperty(window, "localStorage", { value: localStorageMock })
+      window.localStorage.setItem("user", JSON.stringify({
+        type: "Employee"
       }))
       const root = document.createElement("div")
       root.setAttribute("id", "root")
@@ -58,11 +62,13 @@ describe("Given I am connected as an employee", () => {
       window.onNavigate(ROUTES_PATH.Bills)
       // Simulation function
       const handleClickNewBill = jest.fn();
-      const buttonNewBill = screen.getByTestId('btn-new-bill')
-      buttonNewBill.addEventListener('click', handleClickNewBill)
+      const buttonNewBill = screen.getByTestId("btn-new-bill")
+      buttonNewBill.addEventListener("click", handleClickNewBill)
       userEvent.click(buttonNewBill)
+
+      // Result ok if "handleClickNewBill" have been called
       expect(handleClickNewBill).toHaveBeenCalled()
-      // Result I am on NewBill Page
+      // Result ok if I am on NewBill Page
       expect(screen.getByText("Envoyer une note de frais")).toBeTruthy()
     })
   })
@@ -71,8 +77,8 @@ describe("Given I am connected as an employee", () => {
 describe("Given I am connected as an employee, I am on Bill page", () => {
   describe("When I click on the 'Back' button of the browser",()=>{
     test("Then I stay on Bills page",()=>{
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock})
-      window.localStorage.setItem('user', JSON.stringify({type: 'Employee'}))
+      Object.defineProperty(window, "localStorage", { value: localStorageMock})
+      window.localStorage.setItem('user', JSON.stringify({type: "Employee"}))
       const root = document.createElement("div")
       root.setAttribute("id", "root")
       document.body.append(root)
@@ -80,22 +86,23 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
       window.onNavigate(ROUTES_PATH.Bills)
       const PREVIOUS_LOCATION ='/';
       window.onpopstate = () => {
-        const user = JSON.parse(localStorage.getItem('user'))
+        const user = JSON.parse(localStorage.getItem("user"))
         if (user) {
           onNavigate(PREVIOUS_LOCATION)
         }
       }
       window.onpopstate()
-        // Result I stay on Bills page
-      expect(document.body.innerHTML).toContain('Mes notes de frais')
+
+      // Result ok if I stay on the Bills page
+      expect(document.body.innerHTML).toContain("Mes notes de frais")
     })
   })
 
   describe("When I click on the iconEye of one of the bills",()=>{
     test("Then A modal opens displaying the Proof of the bill",()=>{
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Employee'
+      Object.defineProperty(window, "localStorage", { value: localStorageMock })
+      window.localStorage.setItem("user", JSON.stringify({
+        type: "Employee"
       }))
       const root = document.createElement("div")
       root.setAttribute("id", "root")
@@ -110,14 +117,17 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
         const firstIconEyes = iconEyes[0]
         firstIconEyes.addEventListener("click", () => handleClickIconEye(firstIconEyes))
         userEvent.click(firstIconEyes)
+        // Result ok if "handleClickIconEye" have been called, and Jquery modal too
         expect(handleClickIconEye).toHaveBeenCalled()
         expect($.fn.modal).toHaveBeenCalled()
       }
-      // Result the modal is open
+      // Result ok if I can see "Justificatif" in the modal
       expect(screen.getByText("Justificatif")).toBeTruthy()
 
       //[Big Hunt] -Bills - Modal must show image
-      const imgElement = document.querySelector('img')
+      const imgElement = document.querySelector("img")
+
+      // Result ok if "imgElement" exist, attribute src not null and contain once extension .jpg or .jpeg or .png
       expect(imgElement).toBeTruthy()
       expect(imgElement.src).not.toBe(null)
       expect(imgElement.src.match(/\.(jpg|jpeg|png)/)).toBeTruthy()
@@ -131,16 +141,17 @@ describe("Given I am connected as an employee, I am on Bill page", () => {
       }
       document.body.innerHTML = BillsUI({data:bills})
       // Spy function on browser localStorage getItem calls
-      const getItemSpy = jest.spyOn(global.window.localStorage, 'getItem')
+      const getItemSpy = jest.spyOn(global.window.localStorage, "getItem")
       // Return JSON string {"type": "Employee"} on every call to getItem
-      getItemSpy.mockReturnValue(JSON.stringify({ type: 'Employee' }))
+      getItemSpy.mockReturnValue(JSON.stringify({ type: "Employee" }))
       
       new Logout({ document, onNavigate, localStorage })
       // Select ID
-      const disconnect =  $('#layout-disconnect')
+      const disconnect =  $("#layout-disconnect")
       // Triggering the Click
-      disconnect.trigger('click')
-      // Result I am on Login Page
+      disconnect.trigger("click")
+
+      // Result ok if I could see "Employé" on Login Page
       expect(screen.getByText("Employé")).toBeTruthy() 
     })
   })
@@ -152,17 +163,19 @@ describe("Given I am connected as an employee, on Bills Page, and I click on Eye
       document.body.innerHTML=BillsUI({data:bills})
       $.fn.modal = jest.fn()
       const handleClickIconEye = jest.fn()
+      // Select the first "icon-eye"
       const firstIconEyes = screen.getAllByTestId("icon-eye")[0]
       firstIconEyes.addEventListener("click", () => handleClickIconEye(firstIconEyes))
       fireEvent.click(firstIconEyes)
 
-      const modalClose = document.body.querySelector('.close')
+      const modalClose = document.body.querySelector(".close")
       const clickHandlerClose = jest.fn()
-      modalClose.addEventListener('click', clickHandlerClose)
+      modalClose.addEventListener("click", clickHandlerClose)
       userEvent.click(modalClose)
-      const modalContainer = document.body.querySelector('.modal')
-      // Result the modal class "show" disappear
-      expect(modalContainer.classList.contains('show')).toBeFalsy()
+      const modalContainer = document.body.querySelector(".modal")
+
+      // Result ok if in the list of class for the modal not contain "show"
+      expect(modalContainer.classList.contains("show")).toBeFalsy()
     })
   })
 })
@@ -183,10 +196,13 @@ describe("Given I am a user connected as Employee",()=>{
       const getBillsMock = jest.fn(()=>newBills.getBills())
       const listBills = await getBillsMock()
       expect(getBillsMock).toHaveBeenCalled()
-      // Result 4 bills render
+
+      // Result ok if the bills list render is 4
       expect(listBills.length).toBe(4)
 
       await waitFor(() => screen.getAllByText("Mes notes de frais"))
+
+      // Result ok if I can see the render of the page with elements of differents bills
       expect(screen.getByText("Nouvelle note de frais")).toBeTruthy()
       expect(screen.getAllByTestId("icon-eye")).toBeTruthy()
       expect(screen.getByText("Services en ligne")).toBeTruthy()
@@ -200,11 +216,11 @@ describe("Given I am a user connected as Employee",()=>{
       jest.spyOn(mockStore, "bills")
       Object.defineProperty(
           window,
-          'localStorage',
+          "localStorage",
           { value: localStorageMock }
       )
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Employee',
+      window.localStorage.setItem("user", JSON.stringify({
+        type: "Employe",
         email: "a@a"
       }))
       const root = document.createElement("div")
@@ -225,7 +241,8 @@ describe("Given I am a user connected as Employee",()=>{
       // The code is suspended until the promise is resolved
       await new Promise(process.nextTick);
       const message = screen.getByText(/Erreur 400/)
-      // Result message correct
+
+      // Result ok if the message is correctly return
       expect(message).toBeTruthy()
     })
     test("fetches bills from an API and fails with 401 message error", async () => {
@@ -239,6 +256,7 @@ describe("Given I am a user connected as Employee",()=>{
       window.onNavigate(ROUTES_PATH.Bills)
       await new Promise(process.nextTick);
       const message = screen.getByText(/Erreur 401/)
+       // Result ok if the message is correctly return
       expect(message).toBeTruthy()
     })
     test("fetches bills from an API and fails with 404 message error", async () => {
@@ -252,6 +270,7 @@ describe("Given I am a user connected as Employee",()=>{
       window.onNavigate(ROUTES_PATH.Bills)
       await new Promise(process.nextTick);
       const message = screen.getByText(/Erreur 404/)
+      // Result ok if the message is correctly return
       expect(message).toBeTruthy()
     })
     test("fetches bills from an API and fails with 500 message error", async () => {
@@ -265,6 +284,7 @@ describe("Given I am a user connected as Employee",()=>{
       window.onNavigate(ROUTES_PATH.Bills)
       await new Promise(process.nextTick);
       const message = screen.getByText(/Erreur 500/)
+      // Result ok if the message is correctly return
       expect(message).toBeTruthy()
     })
   })
@@ -285,19 +305,20 @@ describe("Given I am a user connected as Employee",()=>{
         const allBills = new Bills({document, onNavigate,store: mockStore,localStorage: window.localStorage });
         // Configuration list method return value once
         mockStore.bills().list = jest.fn().mockResolvedValueOnce([
-          { doc: { date: '2023-05-01', status: 'accepted' } },
-          { doc: { date: '2023-06-01', status: 'accepted' } },
-          { doc: { date: '2023-05-02', status: 'accepted' } },
-          { doc: { date: 'incorrect date', status: 'rejected' } },
-          { doc: { date: '2023-05-04', status: undefined } }, 
+          { doc: { date: "2023-05-01", status: "accepted" } },
+          { doc: { date: "2023-06-01", status: "accepted" } },
+          { doc: { date: "2023-05-02", status: "accepted" } },
+          { doc: { date: "incorrect date", status: "rejected" } },
+          { doc: { date: "2023-05-04", status: undefined } }, 
         ]);
 
-        const consoleSpy = jest.spyOn(console, 'log')
+        const consoleSpy = jest.spyOn(console, "log")
         const newListBills = await allBills.getBills()
   
         await expect(mockStore.bills().list).toHaveBeenCalled()
-        // Result correct for render
+        // Result ok if number of bills is 5
         expect(newListBills.length).toBe(5) 
+        // Result ok if the message console is correct
         expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error), expect.stringContaining("for"), expect.objectContaining({ doc: { date: "incorrect date", status: "rejected" } }))
         // Restore the console.log
         consoleSpy.mockRestore()

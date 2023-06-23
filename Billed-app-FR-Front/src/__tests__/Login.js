@@ -183,6 +183,7 @@ describe("Given that I am a user on login page", () => {
       fireEvent.submit(form);
       expect(screen.getByTestId("form-admin")).toBeTruthy();
     });
+
     // COVERAGE handleSubmitAdmin -> catch -> createUser
     test("Then It should create default User",async () =>{
       document.body.innerHTML = LoginUI();
@@ -204,6 +205,7 @@ describe("Given that I am a user on login page", () => {
       
       fireEvent.submit(form)
       await Promise.resolve();
+      // Result ok if "handleSubmit","login" and "createUser" have been called
       expect(handleSubmit).toHaveBeenCalled()
       expect(login).toHaveBeenCalled()
       expect(createUser).toHaveBeenCalled()

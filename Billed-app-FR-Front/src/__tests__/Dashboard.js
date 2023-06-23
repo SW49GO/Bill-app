@@ -120,6 +120,7 @@ describe('Given I am connected as an Admin', () => {
 
       //[Big Hunt]-Bills ->in the dashboard, the form corresponding to the ticket must display the name of the file
       const fileName = document.getElementById("file-name-admin")
+      // Result ok if the element contain the name of the file
       expect(fileName.textContent).toBe("preview-facture-free-201801-pdf-1.jpg")
     })
   })
@@ -337,7 +338,7 @@ describe("Given I am connect as Admin",()=>{
       }
 
       const myCard = card(bill)
-
+      // Result ok if myCard have the good settings
       expect(myCard).toContain(`id='open-bill${bill.id}'`)
       expect(myCard).toContain(`data-testid='open-bill${bill.id}'`)
       expect(myCard).toContain(`class='bill-card'`)
@@ -349,7 +350,7 @@ describe("Given I am connect as Admin",()=>{
       const email = bill.email.split('@')[0].split('.')
       const expectedFirstName = email.length > 0 ? email[0] : ''
       const expectedLastName = email.length > 1 ? email[1] : email[0]
-      // Result FirstName and LastName is shown
+      // Result ok if I can see FirstName and LastName in "myCard"
       expect(myCard).toContain(`${expectedFirstName} ${expectedLastName}`)
     })
   })
@@ -370,12 +371,14 @@ describe("Given I am connect as Admin",()=>{
 
       const handleShowTickets = dashboard.handleShowTickets.bind({ counter: 1, index: 1 })
       const arrowIcon = screen.getByTestId(`arrow-icon1`);
+      // Result ok if I can see "arrowIcon" in the page
       expect(arrowIcon).toBeTruthy()
       const statusBillsContainer = document.getElementById(`status-bills-container1`)
+      // Result ok if the container "statusBillsContainer" is in the DOM
       expect(statusBillsContainer).toBeTruthy()
       
       handleShowTickets(null, bills, 1)
-      // Result the div card is empty
+      // Result ok if the container is empty
       expect(statusBillsContainer.textContent).toBe('')
     })
   })
@@ -389,7 +392,7 @@ describe("Given I am connect as Admin",()=>{
       const clickSpy = jest.spyOn($.fn, 'trigger');
       new Dashboard({ document, onNavigate, store: null, bills: bills, localStorage})
       $('#arrow-icon1').trigger('click');
-      // Result each event is correctly initialize
+      // Result ok if each "arrow-icon" is correctly initialize with event "click"
       expect(clickSpy).toHaveBeenCalledWith('click')
       $('#arrow-icon2').trigger('click');
       expect(clickSpy).toHaveBeenCalledWith('click')
